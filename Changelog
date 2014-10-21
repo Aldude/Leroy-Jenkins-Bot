@@ -1,0 +1,5 @@
+Inital Changes to UAlbertaBot at first commit:
+	- Commented out ScoutManager in GameCommander
+	- Added function attackEnemyBase to CombatCommander
+	- Changed order of attack functions in CombatCommander
+	- Modified ZergOpeningBook in StrategyManager
