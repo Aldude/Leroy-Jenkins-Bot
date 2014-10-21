@@ -1,3 +1,8 @@
+From now on, all changes should be noted here. As well,
+I will be making my own branch to make changes in.
+I will handle merges if anyone else wants to make a 
+branch similar to this.
+
 Inital Changes to UAlbertaBot at first commit:
 	- Commented out ScoutManager in GameCommander
 	- Added function attackEnemyBase to CombatCommander
