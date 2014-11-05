@@ -34,7 +34,8 @@ void StrategyManager::addStrategies()
 	
 	terranOpeningBook[TerranMarineRush]		= "0 0 0 0 0 1 0 0 3 0 0 3 0 1 0 4 0 0 0 6";
 	
-	zergOpeningBook[ZergZerglingRush]		= "3 4 4 4 4 4 0 0 1";
+	zergOpeningBook[ZergZerglingRush]		= "3 4 4 4 4 4 0 0 1 11 12";
+	//zergOpeningBook[ZergCreepColony]        = "11 11";
 
 	if (selfRace == BWAPI::Races::Protoss)
 	{
@@ -73,6 +74,7 @@ void StrategyManager::addStrategies()
 	{
 		results = std::vector<IntPair>(NumZergStrategies);
 		usableStrategies.push_back(ZergZerglingRush);
+		//usableStrategies.push_back(ZergCreepColony);
 	}
 
 	if (Options::Modules::USING_STRATEGY_IO)
@@ -649,7 +651,9 @@ const MetaPairVector StrategyManager::getZergBuildOrderGoal() const
 	int mutasWanted = numMutas + 6;
 	int hydrasWanted = numHydras + 6;
 
-	goal.push_back(std::pair<MetaType, int>(BWAPI::UnitTypes::Zerg_Zergling, 4));
+	goal.push_back(std::pair<MetaType, int>(BWAPI::UnitTypes::Zerg_Zergling, 10));
+	//here
+	//goal.push_back(std::pair<MetaType, int>(BWAPI::UnitTypes::Zerg_Creep_Colony,2));
 	//goal.push_back(std::pair<MetaType, int>(BWAPI::TechTypes::Stim_Packs,	1));
 
 	//goal.push_back(std::pair<MetaType, int>(BWAPI::UnitTypes::Terran_Medic,		medicsWanted));
