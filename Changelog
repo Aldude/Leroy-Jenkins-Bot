@@ -8,3 +8,9 @@ Inital Changes to UAlbertaBot at first commit:
 	- Added function attackEnemyBase to CombatCommander
 	- Changed order of attack functions in CombatCommander
 	- Modified ZergOpeningBook in StrategyManager
+
+
+Changed on lexieBranch: 
+	- Added sunken colonies and creep colonies to build order
+	- Added them to StarcraftData
+	
