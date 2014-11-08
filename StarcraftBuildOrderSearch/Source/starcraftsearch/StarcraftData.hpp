@@ -110,7 +110,8 @@ class StarcraftData {
 			actions.push_back(StarcraftAction(BWAPI::UnitTypes::Zerg_Hydralisk_Den, actions.size()));				// 7
 			actions.push_back(StarcraftAction(BWAPI::UnitTypes::Zerg_Spire, actions.size()));						// 8
 			actions.push_back(StarcraftAction(BWAPI::UnitTypes::Zerg_Hydralisk, actions.size()));					// 9
-			actions.push_back(StarcraftAction(BWAPI::UnitTypes::Zerg_Mutalisk, actions.size()));					// 10
+			actions.push_back(StarcraftAction(BWAPI::UnitTypes::Zerg_Mutalisk, actions.size()));	
+			actions.push_back(StarcraftAction(BWAPI::UpgradeTypes::Ventral_Sacs, actions.size()));			// 10
 		}	
 	}
 
