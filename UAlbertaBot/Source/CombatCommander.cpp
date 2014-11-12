@@ -304,17 +304,27 @@ void CombatCommander::assignAttackBase(std::set<BWAPI::Unit *> & unitsToAssign)
 	{
 		UnitVector oppUnitsInArea, ourUnitsInArea, goodUnits;
 		MapGrid::Instance().GetUnits(oppUnitsInArea, enemyRegion->getCenter(), 800, false, true);
-		MapGrid::Instance().GetUnits(ourUnitsInArea, enemyRegion->getCenter(), 200, true, false);
+		MapGrid::Instance().GetUnits(ourUnitsInArea, enemyRegion->getCenter(), 400, true, false);
 
 		BOOST_FOREACH(BWAPI::Unit * unit, oppUnitsInArea)
 		{
-			if (unit->getType().isBuilding()) continue;
-			if (unit->getType() == BWAPI::UnitTypes::Zerg_Overlord) continue;
+			if (!unit->getType().isBuilding()) continue;
 			goodUnits.push_back(unit);
 		}
 		oppUnitsInArea = goodUnits;
 
-		if (oppUnitsInArea.empty() & !ourUnitsInArea.empty())
+		if (MapGrid::Instance().getCell(enemyRegion->getCenter()).timeLastVisited > BWAPI::Broodwar->getFPS() * 5)
+		{
+			if (oppUnitsInArea.empty())
+			{
+				return;
+			}
+			UnitVector combatUnits(unitsToAssign.begin(), unitsToAssign.end());
+			unitsToAssign.clear();
+
+			squadData.addSquad(Squad(combatUnits, SquadOrder(SquadOrder::Attack, enemyRegion->getCenter(), 1000, "STORM THE BASE")));
+		}
+		else
 		{
 			UnitVector combatUnits(unitsToAssign.begin(), unitsToAssign.end());
 			unitsToAssign.clear();
@@ -322,8 +332,6 @@ void CombatCommander::assignAttackBase(std::set<BWAPI::Unit *> & unitsToAssign)
 			squadData.addSquad(Squad(combatUnits, SquadOrder(SquadOrder::Attack, enemyRegion->getCenter(), 1000, "STORM THE BASE")));
 		}
 	}
-
-
 }
 
 BWAPI::Unit* CombatCommander::findClosestDefender(std::set<BWAPI::Unit *> & enemyUnitsInRegion, const std::set<BWAPI::Unit *> & units) 
