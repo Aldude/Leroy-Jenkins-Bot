@@ -70,10 +70,10 @@ void Squad::setAllUnits()
 	BOOST_FOREACH(BWAPI::Unit * unit, units)
 	{
 		if( unit->isCompleted() && 
-			unit->getHitPoints() > 0 && 
+			(unit->getHitPoints() > 0) && 
 			unit->exists() &&
 			unit->getPosition().isValid() &&
-			unit->getType() != BWAPI::UnitTypes::Unknown)
+			(unit->getType() != BWAPI::UnitTypes::Unknown))
 		{
 			goodUnits.push_back(unit);
 		}
@@ -116,20 +116,20 @@ void Squad::setManagerUnits()
 	// add units to micro managers
 	BOOST_FOREACH(BWAPI::Unit * unit, units)
 	{
-		if(unit->isCompleted() && unit->getHitPoints() > 0 && unit->exists())
+		if(unit->isCompleted() && (unit->getHitPoints() > 0) && unit->exists())
 		{
-			// select dector units
+			// select detector units
 			if (unit->getType().isDetector() && !unit->getType().isBuilding())
 			{
 				detectorUnits.push_back(unit);
 			}
 			// select transport units
-			else if (unit->getType() == BWAPI::UnitTypes::Protoss_Shuttle || unit->getType() == BWAPI::UnitTypes::Terran_Dropship)
+			else if ((unit->getType() == BWAPI::UnitTypes::Zerg_Overlord) && (BWAPI::Broodwar->self()->getUpgradeLevel(BWAPI::UpgradeTypes::Ventral_Sacs > 0)))
 			{
 				transportUnits.push_back(unit);
 			}
 			// select ranged units
-			else if ((unit->getType().groundWeapon().maxRange() > 32) || (unit->getType() == BWAPI::UnitTypes::Protoss_Reaver))
+			else if (unit->getType().groundWeapon().maxRange() > 32)
 			{
 				rangedUnits.push_back(unit);
 			}
@@ -157,11 +157,11 @@ bool Squad::needsToRegroup()
 		return false;
 	}
 
-	// if we are DT rushing and we haven't lost a DT yet, no retreat!
-	if (StrategyManager::Instance().getCurrentStrategy() == StrategyManager::ProtossDarkTemplar &&
-		(BWAPI::Broodwar->self()->deadUnitCount(BWAPI::UnitTypes::Protoss_Dark_Templar) == 0))
+	// if we are Zergling rushing
+	if (StrategyManager::Instance().getCurrentStrategy() == StrategyManager::ZergZerglingRush &&
+		(BWAPI::Broodwar->self()->deadUnitCount(BWAPI::UnitTypes::Zerg_Zergling) <= 6))
 	{
-		regroupStatus = std::string("\x04 DARK TEMPLAR HOOOOO!");
+		regroupStatus = std::string("\x04 LINGS HOOOOO!");
 		return false;
 	}
 
@@ -179,19 +179,16 @@ bool Squad::needsToRegroup()
 
     bool retreat = score < 0;
     int switchTime = 100;
-    bool waiting = false;
 
     // we should not attack unless 5 seconds have passed since a retreat
     if (retreat != lastRetreatSwitchVal)
     {
         if (retreat == false && (BWAPI::Broodwar->getFrameCount() - lastRetreatSwitch < switchTime))
         {
-            waiting = true;
             retreat = lastRetreatSwitchVal;
         }
         else
         {
-            waiting = false;
             lastRetreatSwitch = BWAPI::Broodwar->getFrameCount();
             lastRetreatSwitchVal = retreat;
         }
@@ -271,7 +268,7 @@ BWAPI::Unit * Squad::unitClosestToEnemy()
 
 	BOOST_FOREACH (BWAPI::Unit * unit, units)
 	{
-		if (unit->getType() == BWAPI::UnitTypes::Protoss_Observer)
+		if (unit->getType() == BWAPI::UnitTypes::Zerg_Overlord)
 		{
 			continue;
 		}
@@ -283,26 +280,6 @@ BWAPI::Unit * Squad::unitClosestToEnemy()
 		{
 			closest = unit;
 			closestDist = dist;
-		}
-	}
-
-	if (!closest)
-	{
-		BOOST_FOREACH (BWAPI::Unit * unit, units)
-		{
-			if (unit->getType() == BWAPI::UnitTypes::Protoss_Observer)
-			{
-				continue;
-			}
-
-			// the distance to the order position
-			int dist = unit->getDistance(BWAPI::Position(BWAPI::Broodwar->enemy()->getStartLocation()));
-
-			if (dist != -1 && (!closest || dist < closestDist))
-			{
-				closest = unit;
-				closestDist = dist;
-			}
 		}
 	}
 

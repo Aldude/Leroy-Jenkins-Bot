@@ -31,6 +31,7 @@ void CombatSimulation::setCombatUnits(const BWAPI::Position & center, const int 
             catch (int e)
             {
                 BWAPI::Broodwar->printf("Problem Adding Self Unit with ID: %d", unit->getID());
+				BWAPI::Broodwar->printf("Error Code %d", e);
             }
 		}
 	}
@@ -46,6 +47,7 @@ void CombatSimulation::setCombatUnits(const BWAPI::Position & center, const int 
             catch (int e)
             {
                 BWAPI::Broodwar->printf("Problem Adding Enemy Unit with ID: %d", ui.unitID);
+				BWAPI::Broodwar->printf("Error Code %d", e);
             }
 		}
 	}
@@ -112,6 +114,7 @@ ScoreType CombatSimulation::simulateCombat()
     catch (int e)
     {
         BWAPI::Broodwar->printf("SparCraft FatalError, simulateCombat() threw");
+		BWAPI::Broodwar->printf("Error Code %d", e);
 
         return -1;
     }

@@ -171,7 +171,7 @@ void UAlbertaBotModule::onSendText(std::string text)
 		std::stringstream numUnitType;
 		int numUnits = 0;
 
-		int i=0;
+		unsigned int i=0;
 		for (i=0; i<text.length(); ++i)
 		{
 			if (text[i] == ' ')
