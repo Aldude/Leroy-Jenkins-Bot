@@ -27,7 +27,6 @@ class BuildingManager {
 	std::vector<BWAPI::Unit *>	buildingUnitsConstructing;		// units which have been recently detected as started construction
 
 	// functions
-	bool						isEvolvedBuilding(BWAPI::UnitType type);
 	bool						isBuildingPositionExplored(const Building & b) const;
 
 	// the update() functions
@@ -60,6 +59,7 @@ public:
 	void						printBuildingNumbers();
 
 	bool						isBeingBuilt(BWAPI::UnitType type);
+	bool						isEvolvedBuilding(BWAPI::UnitType type);
 	
 	void						drawBuildingInformation(int x, int y);
 };

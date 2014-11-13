@@ -111,6 +111,9 @@ class StarcraftData {
 			actions.push_back(StarcraftAction(BWAPI::UnitTypes::Zerg_Spire, actions.size()));						// 8
 			actions.push_back(StarcraftAction(BWAPI::UnitTypes::Zerg_Hydralisk, actions.size()));					// 9
 			actions.push_back(StarcraftAction(BWAPI::UnitTypes::Zerg_Mutalisk, actions.size()));					// 10
+			actions.push_back(StarcraftAction(BWAPI::UnitTypes::Zerg_Creep_Colony, actions.size()));				// 11
+			actions.push_back(StarcraftAction(BWAPI::UnitTypes::Zerg_Sunken_Colony, actions.size()));				// 12
+			actions.push_back(StarcraftAction(BWAPI::UnitTypes::Zerg_Spore_Colony, actions.size()));				// 13
 			actions.push_back(StarcraftAction(BWAPI::UpgradeTypes::Ventral_Sacs, actions.size()));
 		}	
 	}

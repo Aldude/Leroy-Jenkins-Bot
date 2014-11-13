@@ -80,31 +80,12 @@ void ProductionManager::update()
 		performBuildOrderSearch(newGoal);
 	}
 
-	//// detect if there's a build order deadlock once per second
-	if ((BWAPI::Broodwar->getFrameCount() % 24 == 0) && detectBuildOrderDeadlock())
+	// detect if there's a build order deadlock once every 1.5 seconds
+	if ((BWAPI::Broodwar->getFrameCount() % 36 == 0) && detectBuildOrderDeadlock())
 	{
-		BWAPI::Broodwar->printf("Supply deadlock detected, building pylon!");
+		BWAPI::Broodwar->printf("Not enough supply!");
 		queue.queueAsHighestPriority(MetaType(BWAPI::Broodwar->self()->getRace().getSupplyProvider()), true);
 	}
-
-	// if they have cloaked units get a new goal asap
-	if (!enemyCloakedDetected && InformationManager::Instance().enemyHasCloakedUnits())
-	{
-		if (BWAPI::Broodwar->self()->allUnitCount(BWAPI::UnitTypes::Protoss_Photon_Cannon) < 2)
-		{
-			queue.queueAsHighestPriority(MetaType(BWAPI::UnitTypes::Protoss_Photon_Cannon), true);
-			queue.queueAsHighestPriority(MetaType(BWAPI::UnitTypes::Protoss_Photon_Cannon), true);
-		}
-
-		if (BWAPI::Broodwar->self()->allUnitCount(BWAPI::UnitTypes::Protoss_Forge) == 0)
-		{
-			queue.queueAsHighestPriority(MetaType(BWAPI::UnitTypes::Protoss_Forge), true);
-		}
-
-		BWAPI::Broodwar->printf("Enemy Cloaked Unit Detected!");
-		enemyCloakedDetected = true;
-	}
-
 
 //	if (Options::Debug::DRAW_UALBERTABOT_DEBUG) BWAPI::Broodwar->drawTextScreen(447, 17, "\x07 %d", BuildingManager::Instance().getReservedMinerals());
 }
@@ -358,10 +339,7 @@ void ProductionManager::createMetaType(BWAPI::Unit * producer, MetaType t)
 	// TODO: special case of evolved zerg buildings needs to be handled
 
 	// if we're dealing with a building
-	if (t.isUnit() && t.unitType.isBuilding() 
-		&& t.unitType != BWAPI::UnitTypes::Zerg_Lair 
-		&& t.unitType != BWAPI::UnitTypes::Zerg_Hive
-		&& t.unitType != BWAPI::UnitTypes::Zerg_Greater_Spire)
+	if (t.isUnit() && t.unitType.isBuilding() && !BuildingManager::Instance().isEvolvedBuilding(t.unitType))
 	{
 		// send the building task to the building manager
 		BuildingManager::Instance().addBuildingTask(t.unitType, BWAPI::Broodwar->self()->getStartLocation());
