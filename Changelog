@@ -9,6 +9,12 @@ Inital Changes to UAlbertaBot at first commit:
 	- Changed order of attack functions in CombatCommander
 	- Modified ZergOpeningBook in StrategyManager
 
+Changes up to Nov 12
+	- Made some changes to ZerglingRush build order
+	- Added second ZerglingRush build order
+	- Changed attack policies to make ZerglingRush more efficient
+	- Made VS generate LeroyJenkinsBot.dll instead of UAlbertaBot.dll
+	- Made .gitignore include the VS files but not the binaries
 
 Changed on lexieBranch: 
 	- Added sunken colonies and creep colonies to build order
