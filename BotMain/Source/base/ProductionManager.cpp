@@ -135,14 +135,15 @@ void ProductionManager::manageBuildOrderQueue()
 		bool canMake = canMakeNow(producer, currentItem.metaType);
 
 		// if we try to build too many refineries manually remove it
-		if (currentItem.metaType.isRefinery() && (BWAPI::Broodwar->self()->allUnitCount(BWAPI::Broodwar->self()->getRace().getRefinery() >= 3)))
+		if (currentItem.metaType.isRefinery() && (BWAPI::Broodwar->self()->allUnitCount(BWAPI::Broodwar->self()->getRace().getRefinery()) >= 3))
 		{
 			queue.removeCurrentHighestPriorityItem();
 			break;
 		}
 
 		// if the next item in the list is a building and we can't yet make it
-		if (currentItem.metaType.isBuilding() && !(producer && canMake))
+		if (currentItem.metaType.isBuilding() && !(producer && canMake) && 
+			!BuildingManager::Instance().isEvolvedBuilding(currentItem.metaType.unitType))
 		{
 			// construct a temporary building object
 			Building b(currentItem.metaType.unitType, BWAPI::Broodwar->self()->getStartLocation());
@@ -410,8 +411,8 @@ BWAPI::Unit * ProductionManager::selectUnitOfType(BWAPI::UnitType type, bool lea
 
 		BOOST_FOREACH (BWAPI::Unit * u, BWAPI::Broodwar->self()->getUnits()) {
 
-			if (u->getType() == type && u->isCompleted() && !u->isTraining() && !u->isLifted() &&!u->isUnpowered()) {
-
+			if (u->getType() == type && u->isCompleted() && !u->isTraining() && !u->isLifted() && !u->isUnpowered())
+			{
 				return u;
 			}
 		}

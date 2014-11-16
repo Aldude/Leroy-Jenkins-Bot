@@ -87,7 +87,7 @@ void UAlbertaBotModule::onEnd(bool isWinner)
 		Logger::Instance().log(result.str());
 
 		ProductionManager::Instance().onGameEnd();
-	}	
+	}
 }
 
 void UAlbertaBotModule::onFrame()

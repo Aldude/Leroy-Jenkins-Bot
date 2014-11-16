@@ -50,7 +50,7 @@ public:
 		// if a search is in progress 
 		if (searchInProgress)
 		{
-			//BWAPI::Broodwar->printf("Searching with %lf ms left", timeLimit);
+			BWAPI::Broodwar->printf("Searching with %lf ms left", timeLimit);
 			lastSearchFrame = BWAPI::Broodwar->getFrameCount();
 
 			// set the time limit based on how much time we have this frame

@@ -68,7 +68,7 @@ void GameCommander::drawDebugInterface()
 {
 	timerManager.displayTimers(490, 225);
 	
-	StarcraftBuildOrderSearchManager::Instance().drawSearchInformation(10, 240);
+	// StarcraftBuildOrderSearchManager::Instance().drawSearchInformation(10, 240);
 	//BuildingManager::Instance().drawBuildingInformation(200,50);
 	ProductionManager::Instance().drawProductionInformation(10, 30);
 	InformationManager::Instance().drawUnitInformation(425,30);
@@ -119,7 +119,6 @@ void GameCommander::setValidUnits()
 }
 
 // selects which units will be scouting
-// currently only selects the worker scout after first pylon built
 // this does NOT take that worker away from worker manager, but it still works
 // TODO: take this worker away from worker manager in a clever way
 void GameCommander::setScoutUnits()

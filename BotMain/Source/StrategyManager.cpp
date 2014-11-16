@@ -23,8 +23,8 @@ void StrategyManager::addStrategies()
 {
 	zergOpeningBook = std::vector<std::string>(NumZergStrategies);
 	
-	zergOpeningBook[ZergZerglingRush2]		= "3 0 4 4 4 4 1 4 0 11 0 11 0 12 12"; // fast
-	zergOpeningBook[ZergZerglingRush]		= "3 4 4 4 4 4 1"; // fastest
+	zergOpeningBook[ZergZerglingRush2] = "3 0 4 4 4 4 1 4 0 11 0 11 0 12 12"; // fast
+	zergOpeningBook[ZergZerglingRush] = "3 4 4 4 4 4 1"; // fastest
 
 	results = std::vector<IntPair>(NumZergStrategies);
 
