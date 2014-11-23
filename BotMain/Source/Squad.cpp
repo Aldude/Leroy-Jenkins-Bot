@@ -236,12 +236,31 @@ BWAPI::Position Squad::calcCenter()
 BWAPI::Position Squad::calcRegroupPosition()
 {
 	BWAPI::Position regroup(0,0);
+	BWTA::BaseLocation * enemyBaseLocation = InformationManager::Instance().getMainBaseLocation(BWAPI::Broodwar->enemy());
+	BWTA::Region * enemyRegion = enemyBaseLocation ? enemyBaseLocation->getRegion() : NULL;
+
 
 	int minDist(100000);
 
 	BOOST_FOREACH(BWAPI::Unit * unit, units)
 	{
-		if (!nearEnemy[unit])
+		BWAPI::TilePosition unitTile(unit->getPosition());
+		BWTA::Region * unitRegion = unitTile.isValid() ? BWTA::getRegion(unitTile) : NULL;
+
+		if(unitRegion==enemyRegion){
+			std::vector<GroundThreat> groundThreats;
+			fillGroundThreats(groundThreats, unit->getPosition());
+
+			BWAPI::Position fleeTo = calcFleePosition(groundThreats, unit);
+				if (Options::Debug::DRAW_UALBERTABOT_DEBUG) BWAPI::Broodwar->drawCircleMap(fleeTo.x(), fleeTo.y(), 10, BWAPI::Colors::Red);
+
+				BOOST_FOREACH (BWAPI::Unit * unit, BWAPI::Broodwar->getUnitsInRadius(fleeTo, 10))
+				{
+					if (Options::Debug::DRAW_UALBERTABOT_DEBUG) BWAPI::Broodwar->drawCircleMap(unit->getPosition().x(), unit->getPosition().y(), 5, BWAPI::Colors::Cyan, true);
+				}
+				regroup = fleeTo;
+		}
+		else if (!nearEnemy[unit])
 		{
 			int dist = unit->getDistance(order.position);
 			if (dist < minDist)
@@ -261,6 +280,198 @@ BWAPI::Position Squad::calcRegroupPosition()
 		return regroup;
 	}
 }
+BWAPI::Position Squad::calcFleePosition(const std::vector<GroundThreat> & threats, BWAPI::Unit * target) 
+{
+	// calculate the standard flee vector
+	double2 fleeVector = getFleeVector(threats,target);
+
+	// vector to the target, if one exists
+	double2 targetVector(0,0);
+
+	// normalise the target vector
+
+	int mult = 1;
+
+	if (target->getID() % 2) 
+	{
+		mult = -1;
+	}
+
+	// rotate the flee vector by 30 degrees, this will allow us to circle around and come back at a target
+	//fleeVector.rotate(mult*30);
+	double2 newFleeVector;
+
+	int r = 0;
+	int sign = 1;
+	int iterations = 0;
+		
+	// keep rotating the vector until the new position is able to be walked on
+	while (r <= 360) 
+	{
+		// rotate the flee vector
+		fleeVector.rotate(mult*r);
+
+		// re-normalize it
+		fleeVector.normalise();
+
+		// new vector should semi point back at the target
+		newFleeVector = fleeVector * 2 + targetVector;
+
+		// the position we will attempt to go to
+		BWAPI::Position test(target->getPosition() + newFleeVector * 24);
+
+		// draw the debug vector
+		//if (drawDebugVectors) 
+		//{
+			if (Options::Debug::DRAW_UALBERTABOT_DEBUG) BWAPI::Broodwar->drawLineMap(target->getPosition().x(), target->getPosition().y(), test.x(), test.y(), BWAPI::Colors::Cyan);
+		//}
+
+		// if the position is able to be walked on, break out of the loop
+		if (isValidFleePosition(test))
+		{
+			break;
+		}
+
+		r = r + sign * (r + 10);
+		sign = sign * -1;
+
+		if (++iterations > 36)
+		{
+			break;
+		}
+	}
+
+	// go to the calculated 'good' position
+	BWAPI::Position fleeTo(target->getPosition() + newFleeVector * 24);
+	
+	
+	if (Options::Debug::DRAW_UALBERTABOT_DEBUG) BWAPI::Broodwar->drawLineMap(target->getPosition().x(), target->getPosition().y(), fleeTo.x(), fleeTo.y(), BWAPI::Colors::Orange);
+	
+
+	return fleeTo;
+}
+
+bool Squad::isValidFleePosition(BWAPI::Position pos) 
+{
+
+	// get x and y from the position
+	int x(pos.x()), y(pos.y());
+
+	// walkable tiles exist every 8 pixels
+	bool good = BWAPI::Broodwar->isWalkable(x/8, y/8);
+	
+	// if it's not walkable throw it out
+	if (!good) return false;
+	
+	// for each of those units, if it's a building or an attacking enemy unit we don't want to go there
+	BOOST_FOREACH(BWAPI::Unit * unit, BWAPI::Broodwar->getUnitsOnTile(x/32, y/32)) 
+	{
+		if	(unit->getType().isBuilding() || unit->getType().isResourceContainer() || 
+			(unit->getPlayer() != BWAPI::Broodwar->self() && unit->getType().groundWeapon() != BWAPI::WeaponTypes::None)) 
+		{		
+				return false;
+		}
+	}
+
+	int geyserDist = 50;
+	int mineralDist = 32;
+
+	BWTA::BaseLocation * enemyLocation = InformationManager::Instance().getMainBaseLocation(BWAPI::Broodwar->enemy());
+
+	BOOST_FOREACH (BWAPI::Unit * mineral, enemyLocation->getMinerals())
+	{
+		if (mineral->getDistance(pos) < mineralDist)
+		{
+			return false;
+		}
+	}
+
+	BWTA::Region * enemyRegion = enemyLocation->getRegion();
+	if (enemyRegion && BWTA::getRegion(BWAPI::TilePosition(pos)) != enemyRegion)
+	{
+		return false;
+	}
+
+	// otherwise it's okay
+	return true;
+}
+double2 Squad::getFleeVector(const std::vector<GroundThreat> & threats, BWAPI::Unit * unit)
+{
+	double2 fleeVector(0,0);
+
+	BOOST_FOREACH (const GroundThreat & threat, threats)
+	{
+		// Get direction from enemy to mutalisk
+		const double2 direction(unit->getPosition() - threat.unit->getPosition());
+
+		// Divide direction by square distance, weighting closer enemies higher
+		//  Dividing once normalises the vector
+		//  Dividing a second time reduces the effect of far away units
+		const double distanceSq(direction.lenSq());
+		if(distanceSq > 0)
+		{
+			// Enemy influence is direction to flee from enemy weighted by danger posed by enemy
+			const double2 enemyInfluence( (direction / distanceSq) * threat.weight );
+
+			fleeVector = fleeVector + enemyInfluence;
+		}
+	}
+
+	if(fleeVector.lenSq() == 0)
+	{
+		// Flee towards our base
+		fleeVector = double2(1,0);	
+	}
+
+	fleeVector.normalise();
+
+	BWAPI::Position p1(unit->getPosition());
+	BWAPI::Position p2(p1 + fleeVector * 100);
+
+	return fleeVector;
+}	
+// fills the GroundThreat vector within a radius of a target
+void Squad::fillGroundThreats(std::vector<GroundThreat> & threats, BWAPI::Position target)
+{
+	// radius of caring
+	const int radiusWeCareAbout(1000);
+	const int radiusSq(radiusWeCareAbout * radiusWeCareAbout);
+
+	// for each of the candidate units
+	const std::set<BWAPI::Unit*> & candidates(BWAPI::Broodwar->enemy()->getUnits());
+	BOOST_FOREACH (BWAPI::Unit * e, candidates)
+	{
+		// if they're not within the radius of caring, who cares?
+		const BWAPI::Position delta(e->getPosition() - target);
+		if(delta.x() * delta.x() + delta.y() * delta.y() > radiusSq)
+		{
+			continue;
+		}
+
+		// default threat
+		GroundThreat threat;
+		threat.unit		= e;
+		threat.weight	= 1;
+
+		// get the air weapon of the unit
+		BWAPI::WeaponType groundWeapon(e->getType().groundWeapon());
+
+		// if it's a bunker, weight it as if it were 4 marines
+		if(e->getType() == BWAPI::UnitTypes::Terran_Bunker)
+		{
+			groundWeapon	= BWAPI::WeaponTypes::Gauss_Rifle;
+			threat.weight	= 4;
+		}
+
+		// weight the threat based on the highest DPS
+		if(groundWeapon != BWAPI::WeaponTypes::None)
+		{
+			threat.weight *= (static_cast<double>(groundWeapon.damageAmount()) / groundWeapon.damageCooldown());
+			threats.push_back(threat);
+		}
+	}
+}
+
 
 BWAPI::Unit * Squad::unitClosestToEnemy()
 {

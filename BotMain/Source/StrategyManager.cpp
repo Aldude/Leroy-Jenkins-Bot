@@ -23,11 +23,10 @@ void StrategyManager::addStrategies()
 {
 	zergOpeningBook = std::vector<std::string>(NumZergStrategies);
 	
-	zergOpeningBook[ZergZerglingRush2] = "3 0 4 4 4 4 1 4 0 11 0 11 0 12 12"; // fast
-	zergOpeningBook[ZergZerglingRush] = "3 4 4 4 4 4 1"; // fastest
+	zergOpeningBook[ZergZerglingRush2] = "3 4 4 4 4 4 4 0 0 0 0 0 0 5 6 7 8 10 9 10 9 10 9 10 9 10 9 10 10 10 10 "; // fast
+	zergOpeningBook[ZergZerglingRush] = "3 4 4 4 4 4 1 0 0 11 12"; // fastest
 
 	results = std::vector<IntPair>(NumZergStrategies);
-
 	usableStrategies.push_back(ZergZerglingRush);
 	usableStrategies.push_back(ZergZerglingRush2);
 
@@ -246,6 +245,10 @@ const bool StrategyManager::doAttack(const std::set<BWAPI::Unit *> & freeUnits)
 	if(!firstAttackSent)
 	{
 		bool doattack  = BWAPI::Broodwar->self()->completedUnitCount(BWAPI::UnitTypes::Zerg_Zergling) == 6;
+		if(!doattack){ 
+		doattack  = BWAPI::Broodwar->self()->completedUnitCount(BWAPI::UnitTypes::Zerg_Mutalisk) == 8; 
+		}
+			
 		if (doattack)
 		{
 			firstAttackSent = true;

@@ -51,6 +51,7 @@ class Squad
     static int          lastRetreatSwitch;
     static bool         lastRetreatSwitchVal;
 
+
 public:
 
 
@@ -67,4 +68,9 @@ public:
 	const SquadOrder &	getSquadOrder()	const;
 
 	void				setSquadOrder(const SquadOrder & so);
+	void                fillGroundThreats(std::vector<GroundThreat> & threats, BWAPI::Position target);
+	BWAPI::Position     calcFleePosition(const std::vector<GroundThreat> & threats, BWAPI::Unit * target);
+	double2				getFleeVector(const std::vector<GroundThreat> & threats, BWAPI::Unit * unit);
+	bool				isValidFleePosition(BWAPI::Position pos);
+
 };

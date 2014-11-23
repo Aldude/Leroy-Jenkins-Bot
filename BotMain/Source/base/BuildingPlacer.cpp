@@ -188,7 +188,7 @@ BWAPI::TilePosition BuildingPlacer::getBuildLocationNear(const Building & b, int
 	int j      = 0;
 	bool first = true;
 	int dx     = 0;
-	int dy     = 1;
+	int dy     = 3;
 
     SparCraft::Timer t;
     t.start();
