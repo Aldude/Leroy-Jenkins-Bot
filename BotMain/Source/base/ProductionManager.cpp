@@ -1,10 +1,6 @@
 #include "Common.h"
 #include "ProductionManager.h"
 
-#include "..\..\StarcraftBuildOrderSearch\Source\starcraftsearch\ActionSet.hpp"
-#include "..\..\StarcraftBuildOrderSearch\Source\starcraftsearch\DFBBStarcraftSearch.hpp"
-#include "..\..\StarcraftBuildOrderSearch\Source\starcraftsearch\StarcraftData.hpp"
-
 #define BOADD(N, T, B) for (int i=0; i<N; ++i) { queue.queueAsLowestPriority(MetaType(T), B); }
 
 #define GOAL_ADD(G, M, N) G.push_back(std::pair<MetaType, int>(M, N))
@@ -18,8 +14,6 @@ ProductionManager::ProductionManager()
 	, enemyCloakedDetected(false)
 	, rushDetected(false)
 {
-	populateTypeCharMap();
-
 	if (!Options::Modules::USING_BUILD_LEARNER && !Options::Modules::USING_BUILD_ORDER_DEMO)
 	{
 		setBuildOrder(StarcraftBuildOrderSearchManager::Instance().getOpeningBuildOrder());
@@ -39,7 +33,7 @@ void ProductionManager::setBuildOrder(const std::vector<MetaType> & buildOrder)
 	}
 }
 
-void ProductionManager::performBuildOrderSearch(const std::vector< std::pair<MetaType, UnitCountType> > & goal)
+void ProductionManager::performBuildOrderSearch(const std::pair<MetaType, UnitCountType> & goal)
 {	
 	std::vector<MetaType> buildOrder = StarcraftBuildOrderSearchManager::Instance().findBuildOrder(goal);
 
@@ -67,16 +61,11 @@ void ProductionManager::update()
 		return;
 	}
 
-	if ((queue.size() == 0) && Options::Modules::USING_BUILD_ORDER_DEMO)
-	{
-		performBuildOrderSearch(searchGoal);
-	}
-
 	// if nothing is currently building, get a new goal from the strategy manager
 	if ((queue.size() == 0) && (BWAPI::Broodwar->getFrameCount() > 10) && !Options::Modules::USING_BUILD_ORDER_DEMO)
 	{
 		BWAPI::Broodwar->drawTextScreen(150, 10, "Nothing left to build, new search!");
-		const std::vector< std::pair<MetaType, UnitCountType> > newGoal = StrategyManager::Instance().getBuildOrderGoal();
+		const std::pair<MetaType, UnitCountType> newGoal = StrategyManager::Instance().getBuildOrderGoal();
 		performBuildOrderSearch(newGoal);
 	}
 
@@ -106,10 +95,7 @@ void ProductionManager::onUnitDestroy(BWAPI::Unit * unit)
 		{
 			BWAPI::Broodwar->printf("Critical unit died, re-searching build order");
 
-			if (unit->getType() != BWAPI::UnitTypes::Zerg_Drone)
-			{
-				performBuildOrderSearch(StrategyManager::Instance().getBuildOrderGoal());
-			}
+			performBuildOrderSearch(StrategyManager::Instance().getBuildOrderGoal());
 		}
 	}
 }
@@ -430,24 +416,6 @@ BWAPI::Unit * ProductionManager::selectUnitOfType(BWAPI::UnitType type, bool lea
 
 	// return what we've found so far
 	return NULL;
-}
-
-void ProductionManager::populateTypeCharMap()
-{
-	typeCharMap['p'] = MetaType(BWAPI::UnitTypes::Protoss_Probe);
-	typeCharMap['z'] = MetaType(BWAPI::UnitTypes::Protoss_Zealot);
-	typeCharMap['d'] = MetaType(BWAPI::UnitTypes::Protoss_Dragoon);
-	typeCharMap['t'] = MetaType(BWAPI::UnitTypes::Protoss_Dark_Templar);
-	typeCharMap['c'] = MetaType(BWAPI::UnitTypes::Protoss_Corsair);
-	typeCharMap['e'] = MetaType(BWAPI::UnitTypes::Protoss_Carrier);
-	typeCharMap['h'] = MetaType(BWAPI::UnitTypes::Protoss_High_Templar);
-	typeCharMap['n'] = MetaType(BWAPI::UnitTypes::Protoss_Photon_Cannon);
-	typeCharMap['a'] = MetaType(BWAPI::UnitTypes::Protoss_Arbiter);
-	typeCharMap['r'] = MetaType(BWAPI::UnitTypes::Protoss_Reaver);
-	typeCharMap['o'] = MetaType(BWAPI::UnitTypes::Protoss_Observer);
-	typeCharMap['s'] = MetaType(BWAPI::UnitTypes::Protoss_Scout);
-	typeCharMap['l'] = MetaType(BWAPI::UpgradeTypes::Leg_Enhancements);
-	typeCharMap['v'] = MetaType(BWAPI::UpgradeTypes::Singularity_Charge);
 }
 
 void ProductionManager::drawProductionInformation(int x, int y)

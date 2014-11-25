@@ -16,6 +16,11 @@ Changes up to Nov 12
 	- Made VS generate LeroyJenkinsBot.dll instead of UAlbertaBot.dll
 	- Made .gitignore include the VS files but not the binaries
 
+Changes up to Nov 24
+	- Made ProductionManager use a custom build order finder
+	- Started work on scouting via Overlords
+	- Started work on strategies against different races
+
 Changed on lexieBranch: 
 	- Added sunken colonies and creep colonies to build order
 	- Added them to StarcraftData

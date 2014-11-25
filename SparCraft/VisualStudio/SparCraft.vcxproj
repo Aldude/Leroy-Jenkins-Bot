@@ -106,6 +106,7 @@
       <OmitFramePointers>true</OmitFramePointers>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
       <ExceptionHandling>Sync</ExceptionHandling>
+      <BrowseInformation>true</BrowseInformation>
     </ClCompile>
     <Link>
       <AdditionalDependencies>$(BWAPI_DIR)/lib/BWAPI.lib;$(EXTERNAL_LIB_DIR)/SDL.lib;$(EXTERNAL_LIB_DIR)/SDLmain.lib;$(EXTERNAL_LIB_DIR)/opengl32.lib;$(EXTERNAL_LIB_DIR)/SDL_image.lib;$(EXTERNAL_LIB_DIR)/SDL_gfx.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -117,6 +118,9 @@
       <Profile>true</Profile>
       <GenerateMapFile>true</GenerateMapFile>
     </Link>
+    <Bscmake>
+      <PreserveSBR>true</PreserveSBR>
+    </Bscmake>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\source\AllPlayers.h" />

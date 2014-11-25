@@ -29,8 +29,8 @@ void UAlbertaBotModule::onStart()
 
     SparCraft::init();
 
-	BWAPI::Broodwar->enableFlag(BWAPI::Flag::UserInput);
-	//BWAPI::Broodwar->enableFlag(BWAPI::Flag::CompleteMapInformation);
+	// BWAPI::Broodwar->enableFlag(BWAPI::Flag::UserInput);
+	// BWAPI::Broodwar->enableFlag(BWAPI::Flag::CompleteMapInformation);
 
     Options::BotModes::SetBotMode(Options::BotModes::AIIDE_TOURNAMENT);
 	Options::Modules::checkOptions();

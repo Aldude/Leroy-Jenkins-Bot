@@ -23,8 +23,8 @@ void StrategyManager::addStrategies()
 {
 	zergOpeningBook = std::vector<std::string>(NumZergStrategies);
 	
-	zergOpeningBook[ZergZerglingRush2] = "3 0 4 4 4 4 1 4 0 11 0 11 0 12 12"; // fast
-	zergOpeningBook[ZergZerglingRush] = "3 4 4 4 4 4 1"; // fastest
+	zergOpeningBook[ZergZerglingRush] = "3 0 4 4 4 4 1 4 0 11 0 11 0 12 12"; // fast
+	zergOpeningBook[ZergZerglingRush2] = "3 4 4 4 4 4 1"; // fastest
 
 	results = std::vector<IntPair>(NumZergStrategies);
 
@@ -106,7 +106,7 @@ void StrategyManager::setStrategy()
 		int bestStrategyIndex = 0;
 
 		// UCB requires us to try everything once before using the formula
-		for (size_t strategyIndex(0); strategyIndex<usableStrategies.size(); ++strategyIndex)
+		for (size_t strategyIndex(0); strategyIndex < usableStrategies.size(); ++strategyIndex)
 		{
 			int sum = results[usableStrategies[strategyIndex]].first + results[usableStrategies[strategyIndex]].second;
 
@@ -133,7 +133,9 @@ void StrategyManager::setStrategy()
 	}
 	else
 	{
-		currentStrategy = usableStrategies[ZergZerglingRush2];
+		// if (enemyRace == BWAPI::Races::Protoss) {
+			currentStrategy = usableStrategies[ZergZerglingRush];
+		//}
 	}
 
 }
@@ -298,15 +300,15 @@ const bool StrategyManager::expandZergZerglingRush() const
 	return false;
 }
 
-const MetaPairVector StrategyManager::getBuildOrderGoal()
+const MetaPair StrategyManager::getBuildOrderGoal()
 {
 	return getZergBuildOrderGoal();
 }
 
-const MetaPairVector StrategyManager::getZergBuildOrderGoal() const
+const MetaPair StrategyManager::getZergBuildOrderGoal() const
 {
 	// the goal to return
-	std::vector< std::pair<MetaType, UnitCountType> > goal;
+	std::pair<MetaType, UnitCountType> goal;
 /*
 	int numMutas  =		BWAPI::Broodwar->self()->allUnitCount(BWAPI::UnitTypes::Zerg_Mutalisk);
 	int numHydras  =	BWAPI::Broodwar->self()->allUnitCount(BWAPI::UnitTypes::Zerg_Hydralisk);
@@ -314,9 +316,9 @@ const MetaPairVector StrategyManager::getZergBuildOrderGoal() const
 	int mutasWanted = numMutas + 6;
 	int hydrasWanted = numHydras + 6;
 */
-	goal.push_back(std::pair<MetaType, int>(BWAPI::UnitTypes::Zerg_Zergling, 4));
+	goal = std::pair<MetaType, int>(BWAPI::UnitTypes::Zerg_Zergling, 4);
 
-	return (const std::vector< std::pair<MetaType, UnitCountType> >)goal;
+	return (const std::pair<MetaType, UnitCountType>)goal;
 }
 
  const int StrategyManager::getCurrentStrategy()

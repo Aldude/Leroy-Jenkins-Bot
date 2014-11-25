@@ -32,7 +32,6 @@ class ProductionManager
 	BuildLearner				buildLearner;
 	bool						initialBuildSet;
 
-	std::map<char, MetaType>	typeCharMap;
 	std::vector< std::pair<MetaType, UnitCountType> > searchGoal;
 
 	bool						assignedWorkerForThisBuilding;
@@ -47,7 +46,6 @@ class ProductionManager
 	BWAPI::UnitType				getProducer(MetaType t);
 
 	bool						contains(UnitVector & units, BWAPI::Unit * unit);
-	void						populateTypeCharMap();
 	bool						hasResources(BWAPI::UnitType type);
 	bool						canMake(BWAPI::UnitType type);
 	bool						hasNumCompletedUnitType(BWAPI::UnitType type, int num);
@@ -75,7 +73,7 @@ public:
 	void						onUnitMorph(BWAPI::Unit * unit);
 	void						onUnitDestroy(BWAPI::Unit * unit);
 	
-	void						performBuildOrderSearch(const std::vector< std::pair<MetaType, UnitCountType> > & goal);
+	void						performBuildOrderSearch(const std::pair<MetaType, UnitCountType> & goal);
 	void						drawProductionInformation(int x, int y);
 	void						setSearchGoal(MetaPairVector & goal);
 };

@@ -170,9 +170,6 @@
     <ClInclude Include="..\Source\CombatCommander.h">
       <Filter>game\combat</Filter>
     </ClInclude>
-    <ClInclude Include="..\Source\base\StarcraftSearchData.h">
-      <Filter>game\macro\search</Filter>
-    </ClInclude>
     <ClInclude Include="..\Source\base\StarcraftBuildOrderSearchManager.h">
       <Filter>game\macro\search</Filter>
     </ClInclude>

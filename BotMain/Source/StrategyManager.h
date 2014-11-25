@@ -42,7 +42,7 @@ class StrategyManager
 	const	double				getUCBValue(const size_t & strategy) const;
 
 	const	bool				expandZergZerglingRush() const;
-	const	MetaPairVector		getZergBuildOrderGoal() const;
+	const	MetaPair			getZergBuildOrderGoal() const;
 
 public:
 
@@ -59,6 +59,6 @@ public:
 
 	const	int					getCurrentStrategy();
 
-	const	MetaPairVector		getBuildOrderGoal();
+	const	MetaPair			getBuildOrderGoal();
 	const	std::string			getOpeningBook() const;
 };

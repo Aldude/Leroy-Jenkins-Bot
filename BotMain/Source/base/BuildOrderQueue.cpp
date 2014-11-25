@@ -70,6 +70,8 @@ void BuildOrderQueue::queueItem(BuildOrderItem<PRIORITY_TYPE> b)
 	{
 		highestPriority = b.priority;
 		lowestPriority = b.priority;
+		queue.push_back(b);
+		return;
 	}
 
 	// push the item into the queue
@@ -126,8 +128,6 @@ void BuildOrderQueue::removeCurrentHighestPriorityItem()
 {
 	// remove the back element of the vector
 	queue.erase(queue.begin() + queue.size() - 1 - numSkippedItems);
-
-	//assert((int)(queue.size()) < size);
 
 	// if the list is not empty, set the highest accordingly
 	highestPriority = queue.empty() ? 0 : queue.back().priority;

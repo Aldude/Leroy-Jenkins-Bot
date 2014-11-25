@@ -117,7 +117,7 @@ void testSmartSearch()
 	StarcraftState initialState(true);
 
 	SmartStarcraftSearch sss;
-	sss.addGoal(DATA.getAction(BWAPI::UnitTypes::Zerg_Zergling), 16);
+	sss.addGoal(DATA.getAction(BWAPI::UnitTypes::Zerg_Sunken_Colony), 5);
 	sss.setState(initialState);
 	
 	// do the search
@@ -166,9 +166,9 @@ void testSingleSearch()
 int main()
 {
     BWAPI::BWAPI_init();
-	DATA.init(BWAPI::Races::Zerg);
+	DATA.init(BWAPI::Races::Terran);
 	
-	testSmartSearch();
+	//testSmartSearch();
 
     return 0;
 }

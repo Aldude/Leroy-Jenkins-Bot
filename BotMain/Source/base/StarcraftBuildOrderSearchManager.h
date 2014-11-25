@@ -4,45 +4,22 @@
 #include "BuildOrderQueue.h"
 #include "WorkerManager.h"
 #include "../StrategyManager.h"
-#include "..\..\StarcraftBuildOrderSearch\Source\starcraftsearch\ActionSet.hpp"
-#include "..\..\StarcraftBuildOrderSearch\Source\starcraftsearch\DFBBStarcraftSearch.hpp"
-#include "..\..\StarcraftBuildOrderSearch\Source\starcraftsearch\StarcraftState.hpp"
-#include "..\..\StarcraftBuildOrderSearch\Source\starcraftsearch\StarcraftSearchGoal.hpp"
-#include "..\..\StarcraftBuildOrderSearch\Source\starcraftsearch\SmartStarcraftSearch.hpp"
-#include "..\..\StarcraftBuildOrderSearch\Source\starcraftsearch\StarcraftData.hpp"
-#include "..\..\StarcraftBuildOrderSearch\Source\starcraftsearch\SearchSaveState.hpp"
-
-#include "StarcraftSearchData.h"
 
 class StarcraftBuildOrderSearchManager
 {
-	// starcraftSearchData is hard coded to be protoss state for now
-	StarcraftSearchData			starcraftSearchData;
 
-	int lastSearchFinishTime;
+	std::map<int, MetaType>		buildUnits;
+	int							startFrame;
+	bool						finished;
+	std::vector<MetaType>		result;
+	std::vector<MetaType>		goal;
+	int							numWanted;
+	std::vector<MetaType>		buildNone;
 
-	BuildOrderSearch::StarcraftState				getCurrentState();
-
-	// gets a sample starting state for a race
-	BuildOrderSearch::StarcraftState				getStartState();
-	
-	// starts a search
-	BuildOrderSearch::SearchResults					search(const std::vector< std::pair<MetaType, UnitCountType> > & goalUnits);
-
-	BuildOrderSearch::SearchResults					previousResults;
-
-	std::vector<MetaType>							getMetaVector(const BuildOrderSearch::SearchResults & results);
-
-	BuildOrderSearch::Action						getAction(MetaType t);
-
-	BuildOrderSearch::StarcraftSearchGoal			getGoal(const std::vector< std::pair<MetaType, UnitCountType> > & goalUnits);
-
-	void											setRepetitions(BuildOrderSearch::StarcraftSearchGoal goal);
-
-	void						loadOpeningBook();
-	std::vector<std::vector<MetaType>> openingBook;
+	void						createUnitMap();
 	std::vector<MetaType>		getMetaVector(std::string buildString);
-	MetaType					getMetaType(BuildOrderSearch::Action a);
+	MetaType					getMetaType(int action);
+	void						search(double timeLimit);
 	
 	StarcraftBuildOrderSearchManager();
 
@@ -54,11 +31,9 @@ public:
 
 	void						reset();
 
-	void						setActionGoal(BuildOrderSearch::Action a, int count);
-	void						setActionK(BuildOrderSearch::Action a, int k);
 	void						drawSearchInformation(int x, int y);
 
 	std::vector<MetaType>		getOpeningBuildOrder();
 	
-	std::vector<MetaType>		findBuildOrder(const std::vector< std::pair<MetaType, UnitCountType> > & goalUnits);
+	std::vector<MetaType>		findBuildOrder(const std::pair<MetaType, UnitCountType> & goalUnits);
 };

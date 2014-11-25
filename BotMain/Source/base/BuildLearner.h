@@ -12,8 +12,6 @@
 #include "..\..\StarcraftBuildOrderSearch\Source\starcraftsearch\StarcraftData.hpp"
 #include "..\..\StarcraftBuildOrderSearch\Source\starcraftsearch\SearchSaveState.hpp"
 
-#include "StarcraftSearchData.h"
-
 class BuildLearner
 {
 	std::vector<MetaType>				actionsTaken;

@@ -12,13 +12,10 @@ void ScoutManager::update(const std::set<BWAPI::Unit *> & scoutUnits)
 	{
 		BWAPI::Unit * scoutUnit = *scoutUnits.begin();
 
-		if (scoutUnit->getType().isWorker())
+		if (scoutUnit != workerScout)
 		{
-			if (scoutUnit != workerScout)
-			{
-				numWorkerScouts++;
-				workerScout = scoutUnit;
-			}
+			numWorkerScouts++;
+			workerScout = scoutUnit;
 		}
 	}
 

@@ -2,7 +2,7 @@
 #include "GameCommander.h"
 
 
-GameCommander::GameCommander() : numWorkerScouts(0), currentScout(NULL)
+GameCommander::GameCommander() : numScouts(0), currentScout(NULL)
 {
 
 }
@@ -92,9 +92,9 @@ void GameCommander::populateUnitVectors()
 	setValidUnits();
 
 	// set each type of unit
-	// setScoutUnits();
-	setCombatUnits();
+	setScoutUnits();
 	setWorkerUnits();
+	setCombatUnits();
 }
 
 const bool GameCommander::isAssigned(BWAPI::Unit * unit) const
@@ -119,12 +119,10 @@ void GameCommander::setValidUnits()
 }
 
 // selects which units will be scouting
-// this does NOT take that worker away from worker manager, but it still works
-// TODO: take this worker away from worker manager in a clever way
 void GameCommander::setScoutUnits()
 {
 	// if we have just built our first supply provider, set the worker to a scout
-	if (numWorkerScouts == 0)
+	if (numScouts == 0)
 	{
 		// get the first supply provider we come across in our units, this should be the first one we make
 		BWAPI::Unit * supplyProvider = getFirstSupplyProvider();
@@ -132,17 +130,9 @@ void GameCommander::setScoutUnits()
 		// if it exists
 		if (supplyProvider)
 		{
-			// grab the closest worker to the supply provider to send to scout
-			BWAPI::Unit * workerScout = getClosestWorkerToTarget(supplyProvider->getPosition());
-			
-			// if we find a worker (which we should) add it to the scout vector
-			if (workerScout)
-			{
-				numWorkerScouts++;
-				scoutUnits.insert(workerScout);
-				assignedUnits.insert(workerScout);
-				WorkerManager::Instance().setScoutWorker(workerScout);
-			}
+			numScouts++;
+			scoutUnits.insert(supplyProvider);
+			assignedUnits.insert(supplyProvider);
 		}
 	}
 }

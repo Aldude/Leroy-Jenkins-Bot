@@ -145,8 +145,8 @@ namespace Options
 
 	namespace Micro								// micromanagement options
 	{
-		bool WORKER_DEFENSE						= true;		// whether or not we defend with workers when combat units die
-		int WORKER_DEFENSE_PER_UNIT				= 2;		// how many workers to assign to each unit attacking us
+		bool WORKER_DEFENSE						= false;		// whether or not we defend with workers when combat units die
+		int WORKER_DEFENSE_PER_UNIT				= 1;		// how many workers to assign to each unit attacking us
 		
 		int COMBAT_RADIUS						= 1000;		// radius of combat to consider units for Micro Search
 		int COMBAT_REGROUP_RADIUS				= 300;		// radius of units around frontmost unit we consider in regroup calculation

@@ -104,7 +104,7 @@ class GameCommander
 	std::set<BWAPI::Unit *> assignedUnits;
 
 	BWAPI::Unit * currentScout;
-	int numWorkerScouts;
+	int numScouts;
 
 	const bool isAssigned(BWAPI::Unit * unit) const;
 

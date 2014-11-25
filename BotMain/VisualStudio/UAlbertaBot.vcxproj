@@ -95,6 +95,7 @@
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <EnablePREfast>true</EnablePREfast>
       <WholeProgramOptimization>true</WholeProgramOptimization>
+      <BrowseInformation>true</BrowseInformation>
     </ClCompile>
     <ProjectReference>
       <LinkLibraryDependencies>true</LinkLibraryDependencies>
@@ -108,6 +109,9 @@
       <TargetMachine>MachineX86</TargetMachine>
       <GenerateMapFile>true</GenerateMapFile>
     </Link>
+    <Bscmake>
+      <PreserveSBR>true</PreserveSBR>
+    </Bscmake>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\Source\base\BuildLearner.cpp" />
@@ -162,7 +166,6 @@
     <ClInclude Include="..\Source\base\MetaType.h" />
     <ClInclude Include="..\Source\base\ProductionManager.h" />
     <ClInclude Include="..\Source\base\StarcraftBuildOrderSearchManager.h" />
-    <ClInclude Include="..\Source\base\StarcraftSearchData.h" />
     <ClInclude Include="..\Source\base\WorkerData.h" />
     <ClInclude Include="..\Source\base\WorkerManager.h" />
     <ClInclude Include="..\Source\CombatCommander.h" />
