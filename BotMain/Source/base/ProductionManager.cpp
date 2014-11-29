@@ -22,6 +22,11 @@ ProductionManager::ProductionManager()
 
 void ProductionManager::setBuildOrder(const std::vector<MetaType> & buildOrder)
 {
+	if (buildOrder.size() == 0)
+	{
+		return;
+	}
+
 	// clear the current build order
 	queue.clearAll();
 
@@ -33,7 +38,7 @@ void ProductionManager::setBuildOrder(const std::vector<MetaType> & buildOrder)
 	}
 }
 
-void ProductionManager::performBuildOrderSearch(const std::pair<MetaType, UnitCountType> & goal)
+void ProductionManager::performBuildOrderSearch(const std::vector<std::pair<MetaType, UnitCountType>> & goal)
 {	
 	std::vector<MetaType> buildOrder = StarcraftBuildOrderSearchManager::Instance().findBuildOrder(goal);
 
@@ -64,13 +69,20 @@ void ProductionManager::update()
 	// if nothing is currently building, get a new goal from the strategy manager
 	if ((queue.size() == 0) && (BWAPI::Broodwar->getFrameCount() > 10) && !Options::Modules::USING_BUILD_ORDER_DEMO)
 	{
-		BWAPI::Broodwar->drawTextScreen(150, 10, "Nothing left to build, new search!");
-		const std::pair<MetaType, UnitCountType> newGoal = StrategyManager::Instance().getBuildOrderGoal();
-		performBuildOrderSearch(newGoal);
+		if (StarcraftBuildOrderSearchManager::Instance().allDone())
+		{
+			BWAPI::Broodwar->drawTextScreen(150, 10, "Nothing left to build, new search!");
+			const std::vector<std::pair<MetaType, UnitCountType>> newGoal = StrategyManager::Instance().getBuildOrderGoal();
+			performBuildOrderSearch(newGoal);
+		}
+		else
+		{
+			setBuildOrder(StarcraftBuildOrderSearchManager::Instance().findBuildOrder(MetaPairVector()));
+		}
 	}
 
 	// detect if there's a build order deadlock once every 1.5 seconds
-	if ((BWAPI::Broodwar->getFrameCount() % 36 == 0) && detectBuildOrderDeadlock())
+	if ((BWAPI::Broodwar->getFrameCount() % 48 == 0) && detectBuildOrderDeadlock())
 	{
 		BWAPI::Broodwar->printf("Not enough supply!");
 		queue.queueAsHighestPriority(MetaType(BWAPI::Broodwar->self()->getRace().getSupplyProvider()), true);
@@ -91,9 +103,10 @@ void ProductionManager::onUnitDestroy(BWAPI::Unit * unit)
 	if (Options::Modules::USING_MACRO_SEARCH)
 	{
 		// if it's a worker or a building, we need to re-search for the current goal
-		if ((unit->getType().isWorker() && !WorkerManager::Instance().isWorkerScout(unit)) || unit->getType().isBuilding())
+		if ((unit->getType().isWorker() && !WorkerManager::Instance().isWorkerScout(unit) && !unit->isMorphing()) ||
+			unit->getType().isBuilding())
 		{
-			BWAPI::Broodwar->printf("Critical unit died, re-searching build order");
+			BWAPI::Broodwar->printf((unit->getType().getName() + " died, re-searching build order").c_str());
 
 			performBuildOrderSearch(StrategyManager::Instance().getBuildOrderGoal());
 		}
@@ -201,14 +214,34 @@ bool ProductionManager::canMakeNow(BWAPI::Unit * producer, MetaType t)
 bool ProductionManager::detectBuildOrderDeadlock()
 {
 	// if the queue is empty there is no deadlock
-	if (queue.size() == 0 || BWAPI::Broodwar->self()->supplyTotal() >= 390)
+	if ((queue.size() == 0) || (BWAPI::Broodwar->self()->supplyTotal() >= 390))
 	{
 		return false;
 	}
 
 	// are any supply providers being built currently
-	bool supplyInProgress =		BuildingManager::Instance().isBeingBuilt(BWAPI::Broodwar->self()->getRace().getCenter()) || 
-								BuildingManager::Instance().isBeingBuilt(BWAPI::Broodwar->self()->getRace().getSupplyProvider());
+	bool supplyInProgress = false;
+
+	BOOST_FOREACH(BWAPI::Unit * unit, BWAPI::Broodwar->self()->getUnits())
+	{
+		if (unit->getType() == BWAPI::UnitTypes::Zerg_Hatchery)
+		{
+			if (unit->isBeingConstructed())
+			{
+				supplyInProgress = true;
+				break;
+			}
+		}
+
+		if (unit->getType() == BWAPI::UnitTypes::Zerg_Egg)
+		{
+			if (unit->getBuildType() == BWAPI::UnitTypes::Zerg_Overlord)
+			{
+				supplyInProgress = true;
+				break;
+			}
+		}
+	}
 
 	// does the current item being built require more supply
 	int supplyCost			= queue.getHighestPriorityItem().metaType.supplyRequired();

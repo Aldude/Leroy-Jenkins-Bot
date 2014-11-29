@@ -29,7 +29,7 @@ void UAlbertaBotModule::onStart()
 
     SparCraft::init();
 
-	// BWAPI::Broodwar->enableFlag(BWAPI::Flag::UserInput);
+	BWAPI::Broodwar->enableFlag(BWAPI::Flag::UserInput);
 	// BWAPI::Broodwar->enableFlag(BWAPI::Flag::CompleteMapInformation);
 
     Options::BotModes::SetBotMode(Options::BotModes::AIIDE_TOURNAMENT);
@@ -80,7 +80,7 @@ void UAlbertaBotModule::onEnd(bool isWinner)
 			}
 		}
 
-		//result << "Game against " << BWAPI::Broodwar->enemy()->getName() << " " << win << " with strategy " << StrategyManager::Instance().getCurrentStrategy() << "\n";
+		result << "Game against " << BWAPI::Broodwar->enemy()->getName() << " " << win << " with strategy " << StrategyManager::Instance().getCurrentStrategy() << "\n";
 
 		result << sum << " " << BWAPI::Broodwar->getFrameCount() << "\n";
 

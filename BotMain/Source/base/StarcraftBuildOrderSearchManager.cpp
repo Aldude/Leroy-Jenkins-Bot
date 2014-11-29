@@ -34,33 +34,50 @@ void StarcraftBuildOrderSearchManager::createUnitMap()
 	buildUnits[13] = BWAPI::UnitTypes::Zerg_Spore_Colony;
 	buildUnits[14] = BWAPI::UnitTypes::Zerg_Hive;
 	buildUnits[15] = BWAPI::UpgradeTypes::Ventral_Sacs;
+	buildUnits[16] = BWAPI::UpgradeTypes::Metabolic_Boost;
 }
 
 void StarcraftBuildOrderSearchManager::update(double timeLimit)
 {
-	if (!goal.empty()) {
-		startFrame = BWAPI::Broodwar->getFrameCount();
+	startFrame = BWAPI::Broodwar->getFrameCount();
+
+	if (!allDone())
+	{
 		search(timeLimit);
 	}
 }
 
-// function which is called from the bot
-std::vector<MetaType> StarcraftBuildOrderSearchManager::findBuildOrder(const std::pair<MetaType, UnitCountType> & goalUnits)
+bool StarcraftBuildOrderSearchManager::allDone()
 {
-	if (goal.empty())
+	return goal.empty();
+}
+
+// function which is called from the bot
+std::vector<MetaType> StarcraftBuildOrderSearchManager::findBuildOrder(const std::vector<std::pair<MetaType, UnitCountType>> & goalUnits)
+{
+	if (goalUnits.size() > 0)
 	{
-		goal.push_back(goalUnits.first);
-		numWanted = goalUnits.second;
+		BOOST_FOREACH(const MetaPair &unit, goalUnits)
+		{
+			goal.push_front(unit.first);
+			numWanted.push_front(unit.second);
+		}
 	}
 
 	if (finished)
 	{
 		finished = false;
-		goal.pop_back();
-		return result;
+		return reset();
 	}
 
 	return buildNone;
+}
+
+std::vector<MetaType> StarcraftBuildOrderSearchManager::reset()
+{
+	std::vector<MetaType> rv(result);
+	result.clear();
+	return rv;
 }
 
 MetaType StarcraftBuildOrderSearchManager::getMetaType(int action)
@@ -99,15 +116,26 @@ void StarcraftBuildOrderSearchManager::search(double timeLimit) {
 	BWAPI::UnitType builder = goal.back().unitType.whatBuilds().first;
 	int needed = goal.back().unitType.whatBuilds().second;
 
+	if (midSearch)
+	{
+		midSearch = false;
+	}
+
 	while (timeRemaining > 0)
 	{
-		if (BWAPI::Broodwar->self()->completedUnitCount(builder) >= needed)
+		if ((builder == BWAPI::UnitTypes::Zerg_Larva) || (builder == BWAPI::UnitTypes::Zerg_Egg))
+		{
+			break;
+		}
+
+		if (BWAPI::Broodwar->self()->completedUnitCount(builder)  >= needed)
 		{
 			break;
 		}
 		else
 		{
 			needed -= BWAPI::Broodwar->self()->completedUnitCount(builder);
+			needed -= BWAPI::Broodwar->self()->incompleteUnitCount(builder);
 
 			while (needed > 0)
 			{
@@ -123,13 +151,31 @@ void StarcraftBuildOrderSearchManager::search(double timeLimit) {
 
 	if (timeRemaining < 0)
 	{
+		midSearch = true;
+		goal.push_back(builder);
+		numWanted.push_back(needed);
 		return;
 	}
 
-	finished = true;
+	if (!midSearch)
+	{
+		finished = true;
+	}
 
-	for (int i(0); i < numWanted; ++i)
+	for (int i(0); i < numWanted.back(); ++i)
 	{
 		result.push_back(goal.back());
+	}
+
+	goal.pop_back();
+	numWanted.pop_back();
+
+	if (!goal.empty())
+	{
+		if (midSearch)
+		{
+			midSearch = false;
+			search(timeLimit);
+		}
 	}
 }

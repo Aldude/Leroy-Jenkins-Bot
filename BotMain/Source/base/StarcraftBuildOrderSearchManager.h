@@ -11,9 +11,10 @@ class StarcraftBuildOrderSearchManager
 	std::map<int, MetaType>		buildUnits;
 	int							startFrame;
 	bool						finished;
+	bool						midSearch;
 	std::vector<MetaType>		result;
-	std::vector<MetaType>		goal;
-	int							numWanted;
+	std::list<MetaType>			goal;
+	std::list<int>				numWanted;
 	std::vector<MetaType>		buildNone;
 
 	void						createUnitMap();
@@ -29,11 +30,13 @@ public:
 
 	void						update(double timeLimit);
 
-	void						reset();
+	std::vector<MetaType>		reset();
+
+	bool						allDone();
 
 	void						drawSearchInformation(int x, int y);
 
 	std::vector<MetaType>		getOpeningBuildOrder();
 	
-	std::vector<MetaType>		findBuildOrder(const std::pair<MetaType, UnitCountType> & goalUnits);
+	std::vector<MetaType>		findBuildOrder(const std::vector<std::pair<MetaType, UnitCountType>> & goalUnits);
 };

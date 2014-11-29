@@ -23,13 +23,13 @@ void StrategyManager::addStrategies()
 {
 	zergOpeningBook = std::vector<std::string>(NumZergStrategies);
 	
-	zergOpeningBook[ZergZerglingRush] = "3 0 4 4 4 4 1 4 0 11 0 11 0 12 12"; // fast
-	zergOpeningBook[ZergZerglingRush2] = "3 4 4 4 4 4 1"; // fastest
+	zergOpeningBook[FourPoolRush] = "3 4 4 4 4 4 1";
+	zergOpeningBook[Overpool] = "0 0 0 0 0 1 3 0 0 4 4 4 2 2 5 1";
 
 	results = std::vector<IntPair>(NumZergStrategies);
 
-	usableStrategies.push_back(ZergZerglingRush);
-	usableStrategies.push_back(ZergZerglingRush2);
+	usableStrategies.push_back(FourPoolRush);
+	usableStrategies.push_back(Overpool);
 
 	if (Options::Modules::USING_STRATEGY_IO)
 	{
@@ -70,13 +70,13 @@ void StrategyManager::readResults()
 		std::ifstream f_in(readFile.c_str());
 		std::string line;
 		getline(f_in, line);
-		results[ZergZerglingRush].first = atoi(line.c_str());
+		results[FourPoolRush].first = atoi(line.c_str());
 		getline(f_in, line);
-		results[ZergZerglingRush].second = atoi(line.c_str());
+		results[FourPoolRush].second = atoi(line.c_str());
 		getline(f_in, line);
-		results[ZergZerglingRush2].first = atoi(line.c_str());
+		results[Overpool].first = atoi(line.c_str());
 		getline(f_in, line);
-		results[ZergZerglingRush2].second = atoi(line.c_str());
+		results[Overpool].second = atoi(line.c_str());
 		getline(f_in, line);
 	}
 
@@ -89,10 +89,10 @@ void StrategyManager::writeResults()
 	std::string writeFile = writeDir + BWAPI::Broodwar->enemy()->getName() + ".txt";
 	std::ofstream f_out(writeFile.c_str());
 
-	f_out << results[ZergZerglingRush].first   << "\n";
-	f_out << results[ZergZerglingRush].second << "\n";
-	f_out << results[ZergZerglingRush2].first << "\n";
-	f_out << results[ZergZerglingRush2].second << "\n";
+	f_out << results[FourPoolRush].first   << "\n";
+	f_out << results[FourPoolRush].second << "\n";
+	f_out << results[Overpool].first << "\n";
+	f_out << results[Overpool].second << "\n";
 
 	f_out.close();
 }
@@ -133,9 +133,7 @@ void StrategyManager::setStrategy()
 	}
 	else
 	{
-		// if (enemyRace == BWAPI::Races::Protoss) {
-			currentStrategy = usableStrategies[ZergZerglingRush];
-		//}
+		currentStrategy = usableStrategies[Overpool];
 	}
 
 }
@@ -182,9 +180,9 @@ const double StrategyManager::getUCBValue(const size_t & strategy) const
 		totalTrials += results[usableStrategies[s]].first + results[usableStrategies[s]].second;
 	}
 
-	double C		= 0.7;
-	double wins		= results[strategy].first;
-	double trials	= results[strategy].first + results[strategy].second;
+	double C = 0.7;
+	double wins = results[strategy].first;
+	double trials = results[strategy].first + results[strategy].second;
 
 	double ucb = (wins / trials) + C * sqrt(std::log(totalTrials) / trials);
 
@@ -217,16 +215,16 @@ const int StrategyManager::defendWithWorkers()
 	int enemyUnitsNearWorkers = 0;
 
 	// defense radius of hatchery
-	int defenseRadius = 300;
+	int defenseRadius = 200;
 
 	// fill the set with the types of units we're concerned about
-	BOOST_FOREACH (BWAPI::Unit * unit, BWAPI::Broodwar->enemy()->getUnits())
+	BOOST_FOREACH(BWAPI::Unit * unit, BWAPI::Broodwar->enemy()->getUnits())
 	{
 		// if it's a worker or tier 1 unit we want to defend
 		if ((unit->getType() == BWAPI::Broodwar->enemy()->getRace().getWorker()) ||
 			(unit->getType() == BWAPI::UnitTypes::Protoss_Zealot) ||
 			(unit->getType() == BWAPI::UnitTypes::Terran_Marine) ||
-            (unit->getType() == BWAPI::UnitTypes::Zerg_Zergling))
+			(unit->getType() == BWAPI::UnitTypes::Zerg_Zergling))
 		{
 			if (unit->getDistance(homePosition) < defenseRadius)
 			{
@@ -245,9 +243,18 @@ const bool StrategyManager::doAttack(const std::set<BWAPI::Unit *> & freeUnits)
 {
 	bool doattack = false;
 
-	if(!firstAttackSent)
+	if (!firstAttackSent)
 	{
-		bool doattack  = BWAPI::Broodwar->self()->completedUnitCount(BWAPI::UnitTypes::Zerg_Zergling) == 6;
+		if (currentStrategy == FourPoolRush)
+		{
+			bool doattack = BWAPI::Broodwar->self()->completedUnitCount(BWAPI::UnitTypes::Zerg_Zergling) == 3;
+		}
+
+		if (currentStrategy == Overpool)
+		{
+			bool doattack = BWAPI::Broodwar->self()->completedUnitCount(BWAPI::UnitTypes::Zerg_Zergling) == 3;
+		}
+
 		if (doattack)
 		{
 			firstAttackSent = true;
@@ -255,73 +262,115 @@ const bool StrategyManager::doAttack(const std::set<BWAPI::Unit *> & freeUnits)
 	}
 	else
 	{
+		if (currentStrategy == Overpool)
+		{
+			return (BWAPI::Broodwar->self()->getUpgradeLevel(BWAPI::UpgradeTypes::Grooved_Spines) > 1);
+		}
+
 		int ourForceSize = (int)freeUnits.size();
 		int numUnitsNeededForAttack = 1;
-		doattack  = ourForceSize >= numUnitsNeededForAttack;
+		doattack = ourForceSize >= numUnitsNeededForAttack;
 	}
 
 	return doattack;
 }
 
-const bool StrategyManager::expandZergZerglingRush() const
-{
-	// if there is no place to expand to, we can't expand
-	if (MapTools::Instance().getNextExpansion() == BWAPI::TilePositions::None)
-	{
-		return false;
-	}
-
-	int numHatchery =			BWAPI::Broodwar->self()->allUnitCount(BWAPI::UnitTypes::Zerg_Hatchery) +
-								BWAPI::Broodwar->self()->allUnitCount(BWAPI::UnitTypes::Zerg_Hive) +
-								BWAPI::Broodwar->self()->allUnitCount(BWAPI::UnitTypes::Zerg_Lair);
-	int frame =					BWAPI::Broodwar->getFrameCount();
-
-	// if there are more than 10 idle workers, expand
-	if (WorkerManager::Instance().getNumIdleWorkers() > 6)
-	{
-		return true;
-	}
-
-	// 2nd Hatch Conditions:
-	//		First attack was sent
-	//		It is past frame 8500
-	if ((numHatchery < 2) && (firstAttackSent || (frame > 8500)))
-	{
-		return true;
-	}
-
-	// 3rd Hatch Conditions:
-	//		It is past frame 13000
-	if ((numHatchery < 3) && (frame > 13000))
-	{
-		return true;
-	}
-	
-	return false;
-}
-
-const MetaPair StrategyManager::getBuildOrderGoal()
+const MetaPairVector StrategyManager::getBuildOrderGoal()
 {
 	return getZergBuildOrderGoal();
 }
 
-const MetaPair StrategyManager::getZergBuildOrderGoal() const
+const MetaPairVector StrategyManager::getZergBuildOrderGoal()
 {
 	// the goal to return
-	std::pair<MetaType, UnitCountType> goal;
-/*
-	int numMutas  =		BWAPI::Broodwar->self()->allUnitCount(BWAPI::UnitTypes::Zerg_Mutalisk);
-	int numHydras  =	BWAPI::Broodwar->self()->allUnitCount(BWAPI::UnitTypes::Zerg_Hydralisk);
+	std::vector<std::pair<MetaType, UnitCountType>> goal;
 
-	int mutasWanted = numMutas + 6;
-	int hydrasWanted = numHydras + 6;
-*/
-	goal = std::pair<MetaType, int>(BWAPI::UnitTypes::Zerg_Zergling, 4);
+	if (BWAPI::Broodwar->getFrameCount() % 36 != 0)
+	{
+		return goal;
+	}
 
-	return (const std::pair<MetaType, UnitCountType>)goal;
+	if (currentStrategy == FourPoolRush)
+	{
+
+	}
+
+	if (currentStrategy == Overpool)
+	{
+		if (BWAPI::Broodwar->self()->completedUnitCount(BWAPI::UnitTypes::Zerg_Hydralisk_Den) < 1)
+		{
+			if (!isConstructing(BWAPI::UnitTypes::Zerg_Hydralisk_Den))
+			{
+				goal.push_back(MetaPair(BWAPI::UnitTypes::Zerg_Hydralisk_Den, 1));
+			}
+			else if (BWAPI::Broodwar->self()->supplyUsed() / 2 <= 26)
+			{
+				goal.push_back(MetaPair(BWAPI::UnitTypes::Zerg_Drone, 1));
+			}
+		}
+		else if (BWAPI::Broodwar->self()->getUpgradeLevel(BWAPI::UpgradeTypes::Muscular_Augments) < 1)
+		{
+			if (!BWAPI::Broodwar->self()->isUpgrading(BWAPI::UpgradeTypes::Muscular_Augments))
+			{
+				goal.push_back(MetaPair(BWAPI::UpgradeTypes::Muscular_Augments, 1));
+				goal.push_back(MetaPair(BWAPI::UnitTypes::Zerg_Extractor, 1));
+			}
+			else if (BWAPI::Broodwar->self()->supplyUsed() / 2 <= 26)
+			{
+				goal.push_back(MetaPair(BWAPI::UnitTypes::Zerg_Drone, 1));
+			}
+		}
+		else if (BWAPI::Broodwar->self()->getUpgradeLevel(BWAPI::UpgradeTypes::Grooved_Spines) < 1)
+		{
+			if (!BWAPI::Broodwar->self()->isUpgrading(BWAPI::UpgradeTypes::Grooved_Spines))
+			{
+				goal.push_back(MetaPair(BWAPI::UpgradeTypes::Grooved_Spines, 1));
+			}
+			else
+			{
+				goal.push_back(MetaPair(BWAPI::UnitTypes::Zerg_Hydralisk, 2));
+			}
+		}
+		else
+		{
+			goal.push_back(MetaPair(BWAPI::UnitTypes::Zerg_Hydralisk, 3));
+			goal.push_back(MetaPair(BWAPI::UnitTypes::Zerg_Zergling, 2));
+		}
+	}
+
+	return (const std::vector<std::pair<MetaType, UnitCountType>>)goal;
 }
 
  const int StrategyManager::getCurrentStrategy()
  {
 	 return currentStrategy;
+ }
+
+ bool StrategyManager::isConstructing(BWAPI::UnitType unitT)
+ {
+	 BOOST_FOREACH(BWAPI::Unit * unit, BWAPI::Broodwar->self()->getUnits())
+	 {
+		 if (unit->isMorphing())
+		 {
+			 if ((unit->getBuildType() == unitT) || (unit->getType() == unitT))
+			 {
+				 return true;
+			 }
+		 }
+
+		 if (unit->getLastCommand().getUnitType() == unitT)
+		 {
+			 return true;
+		 }
+
+		 if (unit->isBeingConstructed())
+		 {
+			 if ((unit->getBuildType() == unitT) || (unit->getType() == unitT))
+			 {
+				 return true;
+			 }
+		 }
+	 }
+
+	 return BuildingManager::Instance().isBeingBuilt(unitT);
  }

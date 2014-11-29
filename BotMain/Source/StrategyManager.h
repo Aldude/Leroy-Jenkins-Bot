@@ -9,8 +9,6 @@
 #include <sys/stat.h>
 #include <cstdlib>
 
-#include "..\..\StarcraftBuildOrderSearch\Source\starcraftsearch\StarcraftData.hpp"
-
 typedef std::pair<int, int> IntPair;
 typedef std::pair<MetaType, UnitCountType> MetaPair;
 typedef std::vector<MetaPair> MetaPairVector;
@@ -41,12 +39,12 @@ class StrategyManager
 	const	int					getScore(BWAPI::Player * player) const;
 	const	double				getUCBValue(const size_t & strategy) const;
 
-	const	bool				expandZergZerglingRush() const;
-	const	MetaPair			getZergBuildOrderGoal() const;
+			bool				isConstructing(BWAPI::UnitType unitT);
+	const	MetaPairVector		getZergBuildOrderGoal();
 
 public:
 
-	enum { ZergZerglingRush=0, ZergZerglingRush2=1, NumZergStrategies=2 };
+	enum { FourPoolRush=0, Overpool=1, NumZergStrategies=3 };
 
 	static	StrategyManager &	Instance();
 
@@ -59,6 +57,6 @@ public:
 
 	const	int					getCurrentStrategy();
 
-	const	MetaPair			getBuildOrderGoal();
+	const	MetaPairVector		getBuildOrderGoal();
 	const	std::string			getOpeningBook() const;
 };

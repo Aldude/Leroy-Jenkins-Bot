@@ -158,8 +158,7 @@ bool Squad::needsToRegroup()
 	}
 
 	// if we are Zergling rushing
-	if ((StrategyManager::Instance().getCurrentStrategy() == StrategyManager::ZergZerglingRush ||
-         StrategyManager::Instance().getCurrentStrategy() == StrategyManager::ZergZerglingRush2) &&
+	if ((StrategyManager::Instance().getCurrentStrategy() == StrategyManager::FourPoolRush) &&
 		(BWAPI::Broodwar->self()->deadUnitCount(BWAPI::UnitTypes::Zerg_Zergling) <= 10))
 	{
 		regroupStatus = std::string("\x04 LINGS HOOOOO!");
