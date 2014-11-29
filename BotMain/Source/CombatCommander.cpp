@@ -110,7 +110,7 @@ void CombatCommander::assignScoutDefenseSquads()
 				enemyUnitsInRegion.insert(enemyUnit);
 			}
 		}
-
+		/*
         // special case: figure out if the only attacker is a worker, the enemy is scouting
         if (enemyUnitsInRegion.size() == 1 && (*enemyUnitsInRegion.begin())->getType().isWorker())
         {
@@ -128,9 +128,9 @@ void CombatCommander::assignScoutDefenseSquads()
             workerDefenseForce.push_back(workerDefender);
 
             // make a squad using the worker to defend
-            squadData.addSquad(Squad(workerDefenseForce, SquadOrder(SquadOrder::Defend, regionCenter, 1000, "Get That Scout!")));
+          //  squadData.addSquad(Squad(workerDefenseForce, SquadOrder(SquadOrder::Defend, regionCenter, 1000, "Get That Scout!")));
 			return;
-        }
+        }*/
 	}
 }
 
@@ -149,7 +149,6 @@ void CombatCommander::assignDefenseSquads(std::set<BWAPI::Unit *> & unitsToAssig
 
 		// start off assuming all enemy units in region are just workers
 		int numDefendersPerEnemyUnit = 1;
-
 		// all of the enemy units in this region
 		std::set<BWAPI::Unit *> enemyUnitsInRegion;
 		BOOST_FOREACH (BWAPI::Unit * enemyUnit, BWAPI::Broodwar->enemy()->getUnits())
@@ -158,9 +157,7 @@ void CombatCommander::assignDefenseSquads(std::set<BWAPI::Unit *> & unitsToAssig
 			{
 				enemyUnitsInRegion.insert(enemyUnit);
 
-				// if the enemy isn't a worker, increase the amount of defenders for it
-				if (!enemyUnit->getType().isWorker())
-				{
+				if(!enemyUnit->getType().isWorker()){
 					numDefendersPerEnemyUnit = 3;
 				}
 			}
@@ -201,10 +198,11 @@ void CombatCommander::assignDefenseSquads(std::set<BWAPI::Unit *> & unitsToAssig
 			}
 
 			// get ground defenders
-			for (int i=0; i<numGroundNeeded && !groundDefenders.empty(); ++i)
+			for (int i=0; i<(numGroundNeeded) && !groundDefenders.empty(); ++i)
 			{
 				BWAPI::Unit * groundDefender = findClosestDefender(enemyUnitsInRegion, groundDefenders);
 
+				
 				if (groundDefender->getType().isWorker())
 				{
 					WorkerManager::Instance().setCombatWorker(groundDefender);
@@ -251,9 +249,28 @@ void CombatCommander::assignAttackVisibleUnits(std::set<BWAPI::Unit *> & unitsTo
 {
 	if (unitsToAssign.empty()) { return; }
 
+	BWTA::BaseLocation * enemyBaseLocation = InformationManager::Instance().getMainBaseLocation(BWAPI::Broodwar->enemy());
+	BWTA::Region * enemyRegion = enemyBaseLocation->getRegion();
+
+
 	BOOST_FOREACH (BWAPI::Unit * unit, BWAPI::Broodwar->enemy()->getUnits())
 	{
-		if (unit->isVisible() && !unit->getType().isBuilding())
+		/*if(unit->isVisible() && unit->getType().isWorker() && unitsToAssign.size()>2){
+			int numAttack = 1;
+
+			std::set<BWAPI::Unit*>::iterator it = unitsToAssign.begin();
+			std::advance(it,1);
+
+
+			UnitVector workerCombatUnits(unitsToAssign.begin(),it);
+			squadData.addSquad(Squad(workerCombatUnits, SquadOrder(SquadOrder::Attack, unit->getPosition(), 1000, "Attack Visible")));
+		
+			UnitVector otherCombatUnits(unitsToAssign.begin(),unitsToAssign.end());
+			squadData.addSquad(Squad(otherCombatUnits, SquadOrder(SquadOrder::Attack, enemyRegion->getCenter(), 1000, "STORM THE BASE")));
+			unitsToAssign.clear();
+			return;
+		}*/
+	if (unit->isVisible() && !unit->getType().isBuilding() && !unit->getType().isWorker())
 		{
 			UnitVector combatUnits(unitsToAssign.begin(), unitsToAssign.end());
 			unitsToAssign.clear();

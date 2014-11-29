@@ -208,7 +208,7 @@ BWAPI::Unit * GameCommander::getFirstSupplyProvider()
 	{
 		BOOST_FOREACH(BWAPI::Unit * unit, BWAPI::Broodwar->self()->getUnits())
 		{
-			if (unit->getType() == BWAPI::UnitTypes::Zerg_Spawning_Pool)
+			if (unit->getType() == BWAPI::UnitTypes::Zerg_Overlord)
 			{
 				supplyProvider = unit;
 			}
