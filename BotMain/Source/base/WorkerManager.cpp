@@ -1,16 +1,25 @@
 #include "Common.h"
 #include "WorkerManager.h"
 
-WorkerManager::WorkerManager() 
-    : workersPerRefinery(3) 
+WorkerManager::WorkerManager()
+	: workersPerRefinery(3),
+	totalGasWorkers(5),
+	assignedGasWorkers(0)
 {
     previousClosestWorker = NULL;
 }
 
 void WorkerManager::update() 
 {
+	if ((BWAPI::Broodwar->self()->gatheredGas() > 250) && (totalGasWorkers == 5))
+	{
+		totalGasWorkers = 3;
+	}
+
 	// worker bookkeeping
 	updateWorkerStatus();
+
+	assignedGasWorkers = 0;
 
 	// set the gas workers
 	handleGasWorkers();
@@ -81,9 +90,15 @@ void WorkerManager::handleGasWorkers()
 			for (int i=0; i<(workersPerRefinery-numAssigned); ++i)
 			{
 				BWAPI::Unit * gasWorker = getGasWorker(unit);
-				if (gasWorker)
+
+				if (gasWorker && (assignedGasWorkers <= totalGasWorkers))
 				{
 					workerData.setWorkerJob(gasWorker, WorkerData::Gas, unit);
+					++assignedGasWorkers;
+				}
+				else if (gasWorker)
+				{
+					workerData.setWorkerJob(gasWorker, WorkerData::Idle, NULL);
 				}
 			}
 		}

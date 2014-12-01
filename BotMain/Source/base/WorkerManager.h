@@ -14,6 +14,8 @@ class WorkerManager {
     BWAPI::Unit *               previousClosestWorker;
 
 	int							workersPerRefinery;
+	int							totalGasWorkers;
+	int							assignedGasWorkers;
 
 	void						setMineralWorker(BWAPI::Unit * unit);
 

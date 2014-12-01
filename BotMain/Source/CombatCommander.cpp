@@ -49,16 +49,28 @@ void CombatCommander::assignAttackSquads(std::set<BWAPI::Unit *> & unitsToAssign
 	if (unitsToAssign.empty()) { return; }
 
 	bool workersDefending = false;
+	int numZerglings = 0;
+	int numHydras = 0;
+
 	BOOST_FOREACH (BWAPI::Unit * unit, unitsToAssign)
 	{
 		if (unit->getType().isWorker())
 		{
 			workersDefending = true;
 		}
+
+		if (unit->getType() == BWAPI::UnitTypes::Zerg_Zergling)
+		{
+			++numZerglings;
+		}
+
+		if (unit->getType() == BWAPI::UnitTypes::Zerg_Hydralisk)
+		{
+			++numHydras;
+		}
 	}
 
-	// do we have workers in combat
-	bool attackEnemy = !unitsToAssign.empty() && !workersDefending && StrategyManager::Instance().doAttack(unitsToAssign);
+	bool attackEnemy = !unitsToAssign.empty() && !workersDefending && ((numZerglings > 0) || (numHydras >= 8) || StrategyManager::Instance().doAttack(unitsToAssign));
 
 	// if we are attacking, what area are we attacking?
 	if (attackEnemy) 
@@ -110,7 +122,7 @@ void CombatCommander::assignScoutDefenseSquads()
 				enemyUnitsInRegion.insert(enemyUnit);
 			}
 		}
-		/*
+
         // special case: figure out if the only attacker is a worker, the enemy is scouting
         if (enemyUnitsInRegion.size() == 1 && (*enemyUnitsInRegion.begin())->getType().isWorker())
         {
@@ -128,9 +140,9 @@ void CombatCommander::assignScoutDefenseSquads()
             workerDefenseForce.push_back(workerDefender);
 
             // make a squad using the worker to defend
-          //  squadData.addSquad(Squad(workerDefenseForce, SquadOrder(SquadOrder::Defend, regionCenter, 1000, "Get That Scout!")));
+            squadData.addSquad(Squad(workerDefenseForce, SquadOrder(SquadOrder::Defend, regionCenter, 1000, "Get That Scout!")));
 			return;
-        }*/
+        }
 	}
 }
 

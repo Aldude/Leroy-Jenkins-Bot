@@ -44,7 +44,7 @@ class StrategyManager
 
 public:
 
-	enum { FourPoolRush=0, Overpool=1, NumZergStrategies=3 };
+	enum { FourPoolRush=0, Overpool=1, NumZergStrategies };
 
 	static	StrategyManager &	Instance();
 

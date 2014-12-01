@@ -3,7 +3,7 @@
 
 // constructor
 StrategyManager::StrategyManager() 
-	: firstAttackSent(false)
+	: firstAttackSent(true)
 	, currentStrategy(0)
 	, selfRace(BWAPI::Broodwar->self()->getRace())
 	, enemyRace(BWAPI::Broodwar->enemy()->getRace())
@@ -23,7 +23,7 @@ void StrategyManager::addStrategies()
 {
 	zergOpeningBook = std::vector<std::string>(NumZergStrategies);
 	
-	zergOpeningBook[FourPoolRush] = "3 4 4 4 4 4 1";
+	zergOpeningBook[FourPoolRush] = "3 4 4 4 4 4 1 0 4 4";
 	zergOpeningBook[Overpool] = "0 0 0 0 0 1 3 0 0 4 4 4 2 2 5 1";
 
 	results = std::vector<IntPair>(NumZergStrategies);
@@ -133,7 +133,7 @@ void StrategyManager::setStrategy()
 	}
 	else
 	{
-		currentStrategy = usableStrategies[Overpool];
+		currentStrategy = usableStrategies[FourPoolRush];
 	}
 
 }
@@ -243,34 +243,14 @@ const bool StrategyManager::doAttack(const std::set<BWAPI::Unit *> & freeUnits)
 {
 	bool doattack = false;
 
-	if (!firstAttackSent)
+	if (currentStrategy == Overpool)
 	{
-		if (currentStrategy == FourPoolRush)
-		{
-			bool doattack = BWAPI::Broodwar->self()->completedUnitCount(BWAPI::UnitTypes::Zerg_Zergling) == 3;
-		}
-
-		if (currentStrategy == Overpool)
-		{
-			bool doattack = BWAPI::Broodwar->self()->completedUnitCount(BWAPI::UnitTypes::Zerg_Zergling) == 3;
-		}
-
-		if (doattack)
-		{
-			firstAttackSent = true;
-		}
+		return (BWAPI::Broodwar->self()->getUpgradeLevel(BWAPI::UpgradeTypes::Grooved_Spines) > 0);
 	}
-	else
-	{
-		if (currentStrategy == Overpool)
-		{
-			return (BWAPI::Broodwar->self()->getUpgradeLevel(BWAPI::UpgradeTypes::Grooved_Spines) > 1);
-		}
 
-		int ourForceSize = (int)freeUnits.size();
-		int numUnitsNeededForAttack = 1;
-		doattack = ourForceSize >= numUnitsNeededForAttack;
-	}
+	int ourForceSize = (int)freeUnits.size();
+	int numUnitsNeededForAttack = 1;
+	doattack = ourForceSize >= numUnitsNeededForAttack;
 
 	return doattack;
 }
@@ -285,19 +265,48 @@ const MetaPairVector StrategyManager::getZergBuildOrderGoal()
 	// the goal to return
 	std::vector<std::pair<MetaType, UnitCountType>> goal;
 
-	if (BWAPI::Broodwar->getFrameCount() % 36 != 0)
-	{
-		return goal;
-	}
-
 	if (currentStrategy == FourPoolRush)
 	{
+		if ((BWAPI::Broodwar->getFrameCount() > 6500) && (BWAPI::Broodwar->self()->visibleUnitCount(BWAPI::UnitTypes::Zerg_Hatchery) < 2))
+		{
+			if (!isConstructing(BWAPI::UnitTypes::Zerg_Hatchery))
+			{
+				goal.push_back(MetaPair(BWAPI::UnitTypes::Zerg_Hatchery, 1));
+			}
+		}
 
+		if (BWAPI::Broodwar->self()->visibleUnitCount(BWAPI::UnitTypes::Zerg_Drone) < 15)
+		{
+			goal.push_back(MetaPair(BWAPI::UnitTypes::Zerg_Drone, 1));
+		}
+
+		goal.push_back(MetaPair(BWAPI::UnitTypes::Zerg_Zergling, 1));
 	}
 
 	if (currentStrategy == Overpool)
 	{
-		if (BWAPI::Broodwar->self()->completedUnitCount(BWAPI::UnitTypes::Zerg_Hydralisk_Den) < 1)
+		if (BWAPI::Broodwar->getFrameCount() % 36 != 0)
+		{
+			return goal;
+		}
+
+		if (BWAPI::Broodwar->self()->visibleUnitCount(BWAPI::UnitTypes::Zerg_Hatchery) < 2)
+		{
+			if (!isConstructing(BWAPI::UnitTypes::Zerg_Hatchery))
+			{
+				goal.push_back(MetaPair(BWAPI::UnitTypes::Zerg_Hatchery, 1));
+			}
+		}
+
+		if (BWAPI::Broodwar->self()->visibleUnitCount(BWAPI::UnitTypes::Zerg_Extractor) < 1)
+		{
+			if (!isConstructing(BWAPI::UnitTypes::Zerg_Extractor))
+			{
+				goal.push_back(MetaPair(BWAPI::UnitTypes::Zerg_Extractor, 1));
+			}
+		}
+
+		if (BWAPI::Broodwar->self()->visibleUnitCount(BWAPI::UnitTypes::Zerg_Hydralisk_Den) < 1)
 		{
 			if (!isConstructing(BWAPI::UnitTypes::Zerg_Hydralisk_Den))
 			{
@@ -333,8 +342,13 @@ const MetaPairVector StrategyManager::getZergBuildOrderGoal()
 		}
 		else
 		{
-			goal.push_back(MetaPair(BWAPI::UnitTypes::Zerg_Hydralisk, 3));
-			goal.push_back(MetaPair(BWAPI::UnitTypes::Zerg_Zergling, 2));
+			if (BWAPI::Broodwar->self()->visibleUnitCount(BWAPI::UnitTypes::Zerg_Drone) < 42)
+			{
+				goal.push_back(MetaPair(BWAPI::UnitTypes::Zerg_Drone, 1));
+			}
+
+			goal.push_back(MetaPair(BWAPI::UnitTypes::Zerg_Hydralisk, 2));
+			goal.push_back(MetaPair(BWAPI::UnitTypes::Zerg_Zergling, 1));
 		}
 	}
 
