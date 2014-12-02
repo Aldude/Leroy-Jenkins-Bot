@@ -111,6 +111,7 @@ void GameCommander::setValidUnits()
 	// make sure the unit is completed and alive and usable
 	BOOST_FOREACH(BWAPI::Unit * unit, BWAPI::Broodwar->self()->getUnits())
 	{
+		
 		if (isValidUnit(unit))
 		{	
 			validUnits.insert(unit);
@@ -122,19 +123,26 @@ void GameCommander::setValidUnits()
 void GameCommander::setScoutUnits()
 {
 	// if we have just built our first supply provider, set the worker to a scout
-	if (numScouts == 0)
-	{
-		// get the first supply provider we come across in our units, this should be the first one we make
-		BWAPI::Unit * supplyProvider = getFirstSupplyProvider();
+	// get the first supply provider we come across in our units, this should be the first one we make
+	BWAPI::Unit * supplyProvider = getFirstSupplyProvider();
 
-		// if it exists
-		if (supplyProvider)
+	BOOST_FOREACH (BWAPI::Unit * unit, validUnits)
+	{
+		if (unit->getType() == BWAPI::UnitTypes::Zerg_Overlord)
 		{
+				supplyProvider = unit;
+				numScouts++;
+				scoutUnits.insert(supplyProvider);
+				assignedUnits.insert(supplyProvider);
+		}
+	}
+	/*	// if it exists
+	if (supplyProvider)
+	{
 			numScouts++;
 			scoutUnits.insert(supplyProvider);
 			assignedUnits.insert(supplyProvider);
-		}
-	}
+	}*/
 }
 
 // sets combat units to be passed to CombatCommander

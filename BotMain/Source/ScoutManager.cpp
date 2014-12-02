@@ -8,8 +8,9 @@ ScoutManager::ScoutManager() : workerScout(NULL), numWorkerScouts(0), scoutUnder
 
 void ScoutManager::update(const std::set<BWAPI::Unit *> & scoutUnits)
 {
-	if (scoutUnits.size() == 1)
-	{
+	
+	if (scoutUnits.size() <= 3)
+		{
 		BWAPI::Unit * scoutUnit = *scoutUnits.begin();
 
 		if (scoutUnit != workerScout)
@@ -19,10 +20,10 @@ void ScoutManager::update(const std::set<BWAPI::Unit *> & scoutUnits)
 		}
 	}
 
-	moveScouts();
+	moveScouts(scoutUnits);
 }
 
-void ScoutManager::moveScouts()
+void ScoutManager::moveScouts(const std::set<BWAPI::Unit *> & scoutUnits)
 {
 	if (!workerScout || !workerScout->exists() || !workerScout->getPosition().isValid())
 	{
@@ -52,11 +53,12 @@ void ScoutManager::moveScouts()
 	}
 
 	// if we know where the enemy region is and where our scout is
-	if (enemyRegion && scoutRegion)
+	if (enemyRegion && scoutRegion && (!scoutAtBase||scoutUnits.size()==))
 	{
 		// if the scout is in the enemy region
 		if (scoutRegion == enemyRegion)
 		{
+			scoutAtBase = true;
 			std::vector<GroundThreat> groundThreats;
 			fillGroundThreats(groundThreats, workerScout->getPosition());
 
@@ -105,12 +107,25 @@ void ScoutManager::moveScouts()
 		{
 			// move to the enemy region
 			smartMove(workerScout, enemyBaseLocation->getPosition());	
+
 		}
 		
 	}
-
+	if(scoutAtBase){
+		BOOST_FOREACH (BWTA::Chokepoint * chokepoint, BWTA::getChokepoints()) 
+		{
+			// if we haven't explored it yet
+			BWAPI::Position chokepointPosition =  chokepoint->getCenter();
+			if (!BWAPI::Broodwar->isExplored(chokepointPosition.x(),chokepointPosition.y())) 
+			{
+				// assign a zergling to go scout it
+				smartMove(workerScout, BWAPI::Position(chokepoint->getCenter()));			
+				return;
+			}
+		}
+	}
 	// for each start location in the level
-	if (!enemyRegion)
+	if (!enemyRegion && !scoutAtBase)
 	{
 		BOOST_FOREACH (BWTA::BaseLocation * startLocation, BWTA::getStartLocations()) 
 		{
@@ -121,6 +136,24 @@ void ScoutManager::moveScouts()
 				smartMove(workerScout, BWAPI::Position(startLocation->getTilePosition()));			
 				return;
 			}
+		}
+	}
+	else if(scoutAtBase||scoutUnits.size>1){
+		BOOST_FOREACH (BWTA::Chokepoint * chokepoint, BWTA::getChokepoints()) 
+		{
+			// if we haven't explored it yet
+			BWAPI::Position chokepointPosition =  chokepoint->getCenter();
+			BWTA::Region * chokeRegion = chokepointPosition.isValid() ? BWTA::getRegion(chokepointPosition) : NULL;
+
+		//	if (!BWAPI::Broodwar->isExplored(chokepointPosition.x(),chokepointPosition.y())) 
+		//	{
+				// assign a zergling to go scout it
+			if(chokeRegion != scoutRegion){
+				
+				smartMove(workerScout, BWAPI::Position(chokepoint->getCenter()));			
+				return;
+			}
+
 		}
 	}
 }

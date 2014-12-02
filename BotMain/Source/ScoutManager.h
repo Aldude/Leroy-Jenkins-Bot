@@ -25,14 +25,14 @@ class ScoutManager {
 	double2				getFleeVector(const std::vector<GroundThreat> & threats);
 	BWAPI::Unit *		getEnemyGeyser();
 
-
+	bool scoutAtBase;
 public:
 
 	ScoutManager();
 	~ScoutManager() {};
 
 	void update(const std::set<BWAPI::Unit *> & scoutUnits);
-	void moveScouts();
+	void moveScouts(const std::set<BWAPI::Unit *> & scoutUnits);
 
 	void onSendText(std::string text);
 	void onUnitShow(BWAPI::Unit * unit);
