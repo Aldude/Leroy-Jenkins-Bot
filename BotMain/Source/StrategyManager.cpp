@@ -23,7 +23,7 @@ void StrategyManager::addStrategies()
 {
 	zergOpeningBook = std::vector<std::string>(NumZergStrategies);
 	
-	zergOpeningBook[FourPoolRush] = "3 4 4 4 4 4 1 0 4 4";
+	zergOpeningBook[FourPoolRush] = "1 1 1 0 0 0 0 3 4 4 4 4 4 1 0 4 4";
 	zergOpeningBook[Overpool] = "0 0 0 0 0 1 3 0 0 4 4 4 2 2 5 1";
 
 	results = std::vector<IntPair>(NumZergStrategies);

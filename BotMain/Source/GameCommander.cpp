@@ -134,6 +134,7 @@ void GameCommander::setScoutUnits()
 				numScouts++;
 				scoutUnits.insert(supplyProvider);
 				assignedUnits.insert(supplyProvider);
+
 		}
 	}
 	/*	// if it exists

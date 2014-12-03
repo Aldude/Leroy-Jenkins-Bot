@@ -71,6 +71,33 @@ BWAPI::Unit * MeleeManager::getTarget(BWAPI::Unit * meleeUnit, UnitVector & targ
 		{
 			priority = 11;
 		}
+		BWAPI::Position unitPosition = unit->getPosition();
+		std::set<BWAPI::Unit*>& bunkerNearWorker = BWAPI::Broodwar->getUnitsInRadius(unitPosition, 3);
+		
+		if(unit->getType().isWorker() && (bunkerNearWorker.size()!= 0)){
+			std::set<BWAPI::Unit*>::iterator it; 
+			for(it = bunkerNearWorker.begin(); it!= bunkerNearWorker.end(); ++it){
+				BWAPI::Unit * current = *it;
+				if(current->getType() == BWAPI::UnitTypes::Terran_Bunker){
+					priority = 11;
+				}
+			}
+		}
+		bunkerNearWorker = BWAPI::Broodwar->getUnitsInRadius(unitPosition, 10);
+		int cannonCount = 0;
+		if((unit->getType() == BWAPI::UnitTypes::Protoss_Pylon) && (bunkerNearWorker.size()!= 0)){
+			std::set<BWAPI::Unit*>::iterator it; 
+			for(it = bunkerNearWorker.begin(); it!= bunkerNearWorker.end(); ++it){
+				BWAPI::Unit * current = *it;
+				if(current->getType() == BWAPI::UnitTypes::Protoss_Photon_Cannon){
+					cannonCount ++;
+				}
+				if(cannonCount>2){
+					priority = 11;	
+				}
+			}
+		}
+
 
 		if (Options::Debug::DRAW_UALBERTABOT_DEBUG) BWAPI::Broodwar->drawTextMap(unit->getPosition().x(), unit->getPosition().y(), "%d", priority);
 
@@ -96,7 +123,7 @@ int MeleeManager::getAttackPriority(BWAPI::Unit * unit)
 	// highest priority is something that can attack us or aid in combat
 	if (type == BWAPI::UnitTypes::Terran_Medic || 
 		(type.groundWeapon() != BWAPI::WeaponTypes::None && !type.isWorker()) || 
-		type ==  BWAPI::UnitTypes::Terran_Bunker ||
+		(type ==  BWAPI::UnitTypes::Terran_Bunker) ||
 		type == BWAPI::UnitTypes::Protoss_High_Templar ||
 		type == BWAPI::UnitTypes::Protoss_Reaver ||
 		(type.isWorker() && unitNearChokepoint(unit))) 

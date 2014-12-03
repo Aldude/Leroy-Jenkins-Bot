@@ -26,6 +26,9 @@ class ScoutManager {
 	BWAPI::Unit *		getEnemyGeyser();
 
 	bool scoutAtBase;
+	std::set<BWAPI::Position> chokePointsChecked;
+	BWAPI::Unit* firstScout;
+
 public:
 
 	ScoutManager();
