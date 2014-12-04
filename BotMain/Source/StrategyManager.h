@@ -20,11 +20,11 @@ class StrategyManager
 
 	std::vector<std::string>	zergOpeningBook;
 
-	std::string					readDir;
-	std::string					writeDir;
-	std::vector<IntPair>		results;
-	std::vector<int>			usableStrategies;
-	int							currentStrategy;
+	std::string							readDir;
+	std::string							writeDir;
+	std::vector<std::vector<IntPair>>	results;
+	std::vector<int>					usableStrategies;
+	int									currentStrategy;
 
 	BWAPI::Race					selfRace;
 	BWAPI::Race					enemyRace;
@@ -44,7 +44,7 @@ class StrategyManager
 
 public:
 
-	enum { FourPoolRush=0, Overpool=1, NumZergStrategies };
+	enum { FourPoolRush, FivePoolRush, Overpool, MutaRush, NumZergStrategies };
 
 	static	StrategyManager &	Instance();
 
