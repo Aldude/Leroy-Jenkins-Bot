@@ -8,21 +8,20 @@ ScoutManager::ScoutManager() : workerScout(NULL), numWorkerScouts(0), scoutUnder
 
 void ScoutManager::update(const std::set<BWAPI::Unit *> & scoutUnits)
 {
-	if (scoutUnits.size() == 1)
-	{
+	if(scoutUnits.size()<=3){
 		BWAPI::Unit * scoutUnit = *scoutUnits.begin();
-
+		
 		if (scoutUnit != workerScout)
 		{
 			numWorkerScouts++;
 			workerScout = scoutUnit;
 		}
-	}
 
-	moveScouts();
+	moveScouts(scoutUnits);
+	}
 }
 
-void ScoutManager::moveScouts()
+void ScoutManager::moveScouts(const std::set<BWAPI::Unit *> & scoutUnits)
 {
 	if (!workerScout || !workerScout->exists() || !workerScout->getPosition().isValid())
 	{
@@ -50,18 +49,18 @@ void ScoutManager::moveScouts()
 	{
 		scoutUnderAttack = false;
 	}
-
 	// if we know where the enemy region is and where our scout is
 	if (enemyRegion && scoutRegion)
 	{
 		// if the scout is in the enemy region
-		if (scoutRegion == enemyRegion)
+		if ((scoutRegion == enemyRegion))
 		{
+			//scoutAtBase = true;
 			std::vector<GroundThreat> groundThreats;
 			fillGroundThreats(groundThreats, workerScout->getPosition());
 
 			// get the closest enemy worker
-			BWAPI::Unit * closestWorker = closestEnemyWorker();
+			BWAPI::Unit* closestWorker = closestEnemyWorker();
 
 			// if the worker scout is not under attack
 			if (!scoutUnderAttack)
@@ -103,14 +102,35 @@ void ScoutManager::moveScouts()
 		}
 		else
 		{
-			// move to the enemy region
-			smartMove(workerScout, enemyBaseLocation->getPosition());	
+			if(!scoutAtBase){
+				smartMove(workerScout, enemyBaseLocation->getPosition());
+			}
+
+		BOOST_FOREACH (BWTA::Chokepoint * chokepoint, BWTA::getChokepoints()) 
+		{
+			bool checked = false;
+			// if we haven't explored it yet
+			BWAPI::Position chokepointPosition =  chokepoint->getCenter();
+			if(chokePointsChecked.size() != 0){
+				std::set<BWAPI::Position>::iterator it; 
+				for(it = chokePointsChecked.begin(); it!= chokePointsChecked.end(); ++it){
+					BWAPI::Position current = *it;
+					if(chokepointPosition == current){
+						checked = true;
+					}
+				}	
+			}
+			if(!checked){
+				chokePointsChecked.insert(chokepointPosition);
+				smartMove(workerScout, BWAPI::Position(chokepoint->getCenter()));			
+			}
+		}
 		}
 		
 	}
 
 	// for each start location in the level
-	if (!enemyRegion)
+	if (!enemyRegion )
 	{
 		BOOST_FOREACH (BWTA::BaseLocation * startLocation, BWTA::getStartLocations()) 
 		{
@@ -123,7 +143,9 @@ void ScoutManager::moveScouts()
 			}
 		}
 	}
+
 }
+
 
 BWAPI::Position ScoutManager::calcFleePosition(const std::vector<GroundThreat> & threats, BWAPI::Unit * target) 
 {
