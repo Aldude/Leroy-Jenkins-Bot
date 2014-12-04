@@ -169,7 +169,8 @@ void CombatCommander::assignDefenseSquads(std::set<BWAPI::Unit *> & unitsToAssig
 			{
 				enemyUnitsInRegion.insert(enemyUnit);
 
-				if(!enemyUnit->getType().isWorker()){
+				if(!enemyUnit->getType().isWorker())
+				{
 					numDefendersPerEnemyUnit = 3;
 				}
 			}
@@ -214,7 +215,6 @@ void CombatCommander::assignDefenseSquads(std::set<BWAPI::Unit *> & unitsToAssig
 			{
 				BWAPI::Unit * groundDefender = findClosestDefender(enemyUnitsInRegion, groundDefenders);
 
-				
 				if (groundDefender->getType().isWorker())
 				{
 					WorkerManager::Instance().setCombatWorker(groundDefender);

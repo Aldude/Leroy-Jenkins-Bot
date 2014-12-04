@@ -54,7 +54,7 @@ namespace Options
 				Modules::USING_SCOUTMANAGER			= true;	
 				Modules::USING_COMBATCOMMANDER		= true;
 		        Modules::USING_MACRO_SEARCH			= true;	
-		        Modules::USING_STRATEGY_IO			= false;
+		        Modules::USING_STRATEGY_IO			= true;
                 Modules::USING_UNIT_COMMAND_MGR		= true; 
 		
                 Modules::USING_REPLAY_VISUALIZER	= false;

@@ -23,13 +23,29 @@ void StrategyManager::addStrategies()
 {
 	zergOpeningBook = std::vector<std::string>(NumZergStrategies);
 	
-	zergOpeningBook[FourPoolRush] = "3 4 4 4 4 4 1 0 4 4";
+	zergOpeningBook[FourPoolRush] = "3 4 4 4 4 4 4";
+	zergOpeningBook[FivePoolRush] = "0 3 0 0 4 4 4 1 4 4 0";
 	zergOpeningBook[Overpool] = "0 0 0 0 0 1 3 0 0 4 4 4 2 2 5 1";
+	zergOpeningBook[MutaRush] = "0 0 0 0 0 1 0 0 0 0 3 5 0 2 6 4 4 0 0 1 0 11 0 8 12 0 0 1 1 5 10 10 10 10 10 10";
 
-	results = std::vector<IntPair>(NumZergStrategies);
+	results = std::vector<std::vector<IntPair>>(3);
+
+	for (int i(0); i < 3; ++i)
+	{
+		results[i] = std::vector<IntPair>(NumZergStrategies);
+	}
 
 	usableStrategies.push_back(FourPoolRush);
-	usableStrategies.push_back(Overpool);
+	usableStrategies.push_back(FivePoolRush);
+
+	if (enemyRace == BWAPI::Races::Terran)
+	{
+		usableStrategies.push_back(MutaRush);
+	}
+	else if (enemyRace == BWAPI::Races::Protoss)
+	{
+		usableStrategies.push_back(Overpool);
+	}
 
 	if (Options::Modules::USING_STRATEGY_IO)
 	{
@@ -62,26 +78,49 @@ void StrategyManager::readResults()
 	// if the file doesn't exist, set the results to zeros
 	if (stat(readFile.c_str(), &buf) == -1)
 	{
-		std::fill(results.begin(), results.end(), IntPair(0,0));
+		for (int i(0); i < 3; ++i)
+		{
+			std::fill(results[i].begin(), results[i].end(), IntPair(0, 0));
+		}
 	}
 	// otherwise read in the results
 	else
 	{
 		std::ifstream f_in(readFile.c_str());
 		std::string line;
-		getline(f_in, line);
-		results[FourPoolRush].first = atoi(line.c_str());
-		getline(f_in, line);
-		results[FourPoolRush].second = atoi(line.c_str());
-		getline(f_in, line);
-		results[Overpool].first = atoi(line.c_str());
-		getline(f_in, line);
-		results[Overpool].second = atoi(line.c_str());
-		getline(f_in, line);
+
+		for (int i(0); i < 3; ++i)
+		{
+			getline(f_in, line);
+			getline(f_in, line);
+			results[i][FourPoolRush].first = atoi(line.c_str());
+			getline(f_in, line);
+			results[i][FourPoolRush].second = atoi(line.c_str());
+			getline(f_in, line);
+			results[i][FivePoolRush].first = atoi(line.c_str());
+			getline(f_in, line);
+			results[i][FivePoolRush].second = atoi(line.c_str());
+			getline(f_in, line);
+			results[i][Overpool].first = atoi(line.c_str());
+			getline(f_in, line);
+			results[i][Overpool].second = atoi(line.c_str());
+			getline(f_in, line);
+			results[i][MutaRush].first = atoi(line.c_str());
+			getline(f_in, line);
+			results[i][MutaRush].second = atoi(line.c_str());
+			getline(f_in, line);
+		}
 	}
 
-	BWAPI::Broodwar->printf("Results (%s): (%d %d) (%d %d) (%d %d)", BWAPI::Broodwar->enemy()->getName().c_str(), 
-		results[0].first, results[0].second, results[1].first, results[1].second, results[2].first, results[2].second);
+	for (int i(0); i < 3; ++i)
+	{
+		BWAPI::Broodwar->printf("Results (%s): %d Player Maps: (%d %d) (%d %d) (%d %d) (%d %d)",
+			BWAPI::Broodwar->enemy()->getName().c_str(), i + 2,
+			results[i][0].first, results[i][0].second,
+			results[i][1].first, results[i][1].second,
+			results[i][2].first, results[i][2].second,
+			results[i][3].first, results[i][3].second);
+	}
 }
 
 void StrategyManager::writeResults()
@@ -89,10 +128,18 @@ void StrategyManager::writeResults()
 	std::string writeFile = writeDir + BWAPI::Broodwar->enemy()->getName() + ".txt";
 	std::ofstream f_out(writeFile.c_str());
 
-	f_out << results[FourPoolRush].first   << "\n";
-	f_out << results[FourPoolRush].second << "\n";
-	f_out << results[Overpool].first << "\n";
-	f_out << results[Overpool].second << "\n";
+	for (int i(0); i < 3; ++i)
+	{
+		f_out << BWTA::getStartLocations().size() << " Player Maps" << "\n";
+		f_out << results[i][FourPoolRush].first << "\n";
+		f_out << results[i][FourPoolRush].second << "\n";
+		f_out << results[i][FivePoolRush].first << "\n";
+		f_out << results[i][FivePoolRush].second << "\n";
+		f_out << results[i][Overpool].first << "\n";
+		f_out << results[i][Overpool].second << "\n";
+		f_out << results[i][MutaRush].first << "\n";
+		f_out << results[i][MutaRush].second << "\n";
+	}
 
 	f_out.close();
 }
@@ -108,7 +155,8 @@ void StrategyManager::setStrategy()
 		// UCB requires us to try everything once before using the formula
 		for (size_t strategyIndex(0); strategyIndex < usableStrategies.size(); ++strategyIndex)
 		{
-			int sum = results[usableStrategies[strategyIndex]].first + results[usableStrategies[strategyIndex]].second;
+			int sum = results[BWTA::getStartLocations().size()][usableStrategies[strategyIndex]].first +
+				results[BWTA::getStartLocations().size()][usableStrategies[strategyIndex]].second;
 
 			if (sum == 0)
 			{
@@ -148,11 +196,11 @@ void StrategyManager::onEnd(const bool isWinner)
 		{
 			if (isWinner)
 			{
-				results[getCurrentStrategy()].first = results[getCurrentStrategy()].first + 1;
+				results[BWTA::getStartLocations().size()][getCurrentStrategy()].first += 1;
 			}
 			else
 			{
-				results[getCurrentStrategy()].second = results[getCurrentStrategy()].second + 1;
+				results[BWTA::getStartLocations().size()][getCurrentStrategy()].second += 1;
 			}
 		}
 		// otherwise game timed out so use in-game score
@@ -160,11 +208,11 @@ void StrategyManager::onEnd(const bool isWinner)
 		{
 			if (getScore(BWAPI::Broodwar->self()) > getScore(BWAPI::Broodwar->enemy()))
 			{
-				results[getCurrentStrategy()].first = results[getCurrentStrategy()].first + 1;
+				results[BWTA::getStartLocations().size()][getCurrentStrategy()].first += 1;
 			}
 			else
 			{
-				results[getCurrentStrategy()].second = results[getCurrentStrategy()].second + 1;
+				results[BWTA::getStartLocations().size()][getCurrentStrategy()].second += 1;
 			}
 		}
 		
@@ -177,12 +225,12 @@ const double StrategyManager::getUCBValue(const size_t & strategy) const
 	double totalTrials(0);
 	for (size_t s(0); s<usableStrategies.size(); ++s)
 	{
-		totalTrials += results[usableStrategies[s]].first + results[usableStrategies[s]].second;
+		totalTrials += results[BWTA::getStartLocations().size()][usableStrategies[s]].first + results[BWTA::getStartLocations().size()][usableStrategies[s]].second;
 	}
 
 	double C = 0.7;
-	double wins = results[strategy].first;
-	double trials = results[strategy].first + results[strategy].second;
+	double wins = results[BWTA::getStartLocations().size()][strategy].first;
+	double trials = results[BWTA::getStartLocations().size()][strategy].first + results[BWTA::getStartLocations().size()][strategy].second;
 
 	double ucb = (wins / trials) + C * sqrt(std::log(totalTrials) / trials);
 
@@ -265,19 +313,62 @@ const MetaPairVector StrategyManager::getZergBuildOrderGoal()
 	// the goal to return
 	std::vector<std::pair<MetaType, UnitCountType>> goal;
 
-	if (currentStrategy == FourPoolRush)
+	if (BWAPI::Broodwar->getFrameCount() % 36 != 0)
 	{
-		if ((BWAPI::Broodwar->getFrameCount() > 6500) && (BWAPI::Broodwar->self()->visibleUnitCount(BWAPI::UnitTypes::Zerg_Hatchery) < 2))
+		return goal;
+	}
+
+	if ((currentStrategy == FourPoolRush) || (currentStrategy == FivePoolRush))
+	{
+		if (BWAPI::Broodwar->getFrameCount() > 6500)
 		{
-			if (!isConstructing(BWAPI::UnitTypes::Zerg_Hatchery))
+			if (BWAPI::Broodwar->self()->visibleUnitCount(BWAPI::UnitTypes::Zerg_Hatchery) < 2)
 			{
-				goal.push_back(MetaPair(BWAPI::UnitTypes::Zerg_Hatchery, 1));
+				if (!isConstructing(BWAPI::UnitTypes::Zerg_Hatchery))
+				{
+					goal.push_back(MetaPair(BWAPI::UnitTypes::Zerg_Hatchery, 1));
+				}
+			}
+		}
+		
+		if (BWAPI::Broodwar->getFrameCount() > 5000)
+		{
+			if (BWAPI::Broodwar->self()->visibleUnitCount(BWAPI::UnitTypes::Zerg_Extractor) < 1)
+			{
+				if (!isConstructing(BWAPI::UnitTypes::Zerg_Extractor))
+				{
+					goal.push_back(MetaPair(BWAPI::UnitTypes::Zerg_Extractor, 1));
+				}
+			}
+			else if (BWAPI::Broodwar->self()->getUpgradeLevel(BWAPI::UpgradeTypes::Metabolic_Boost) < 1)
+			{
+				if (!BWAPI::Broodwar->self()->isUpgrading(BWAPI::UpgradeTypes::Metabolic_Boost))
+				{
+					goal.push_back(MetaPair(BWAPI::UpgradeTypes::Metabolic_Boost, 1));
+				}
+			}
+			else if (BWAPI::Broodwar->self()->getUpgradeLevel(BWAPI::UpgradeTypes::Zerg_Melee_Attacks) < 1)
+			{
+				if (!BWAPI::Broodwar->self()->isUpgrading(BWAPI::UpgradeTypes::Zerg_Melee_Attacks))
+				{
+					goal.push_back(MetaPair(BWAPI::UpgradeTypes::Zerg_Melee_Attacks, 1));
+				}
 			}
 		}
 
-		if (BWAPI::Broodwar->self()->visibleUnitCount(BWAPI::UnitTypes::Zerg_Drone) < 15)
+		if (BWAPI::Broodwar->getFrameCount() < 6800)
 		{
-			goal.push_back(MetaPair(BWAPI::UnitTypes::Zerg_Drone, 1));
+			if (BWAPI::Broodwar->self()->visibleUnitCount(BWAPI::UnitTypes::Zerg_Drone) < 15)
+			{
+				goal.push_back(MetaPair(BWAPI::UnitTypes::Zerg_Drone, 1));
+			}
+		}
+		else
+		{
+			if (BWAPI::Broodwar->self()->visibleUnitCount(BWAPI::UnitTypes::Zerg_Drone) < 28)
+			{
+				goal.push_back(MetaPair(BWAPI::UnitTypes::Zerg_Drone, 1));
+			}
 		}
 
 		goal.push_back(MetaPair(BWAPI::UnitTypes::Zerg_Zergling, 1));
@@ -285,11 +376,6 @@ const MetaPairVector StrategyManager::getZergBuildOrderGoal()
 
 	if (currentStrategy == Overpool)
 	{
-		if (BWAPI::Broodwar->getFrameCount() % 36 != 0)
-		{
-			return goal;
-		}
-
 		if (BWAPI::Broodwar->self()->visibleUnitCount(BWAPI::UnitTypes::Zerg_Hatchery) < 2)
 		{
 			if (!isConstructing(BWAPI::UnitTypes::Zerg_Hatchery))
@@ -303,6 +389,28 @@ const MetaPairVector StrategyManager::getZergBuildOrderGoal()
 			if (!isConstructing(BWAPI::UnitTypes::Zerg_Extractor))
 			{
 				goal.push_back(MetaPair(BWAPI::UnitTypes::Zerg_Extractor, 1));
+			}
+		}
+
+		if (BWAPI::Broodwar->getFrameCount() > 9000)
+		{
+			if (BWAPI::Broodwar->self()->getUpgradeLevel(BWAPI::UpgradeTypes::Zerg_Missile_Attacks) < 2)
+			{
+				if (!BWAPI::Broodwar->self()->isUpgrading(BWAPI::UpgradeTypes::Zerg_Missile_Attacks))
+				{
+					goal.push_back(MetaPair(BWAPI::UpgradeTypes::Zerg_Missile_Attacks, 1));
+				}
+			}
+		}
+
+		if (BWAPI::Broodwar->getFrameCount() > 7000)
+		{
+			if (BWAPI::Broodwar->self()->getUpgradeLevel(BWAPI::UpgradeTypes::Zerg_Missile_Attacks) < 1)
+			{
+				if (!BWAPI::Broodwar->self()->isUpgrading(BWAPI::UpgradeTypes::Zerg_Missile_Attacks))
+				{
+					goal.push_back(MetaPair(BWAPI::UpgradeTypes::Zerg_Missile_Attacks, 1));
+				}
 			}
 		}
 
@@ -350,6 +458,55 @@ const MetaPairVector StrategyManager::getZergBuildOrderGoal()
 			goal.push_back(MetaPair(BWAPI::UnitTypes::Zerg_Hydralisk, 2));
 			goal.push_back(MetaPair(BWAPI::UnitTypes::Zerg_Zergling, 1));
 		}
+	}
+
+	if (currentStrategy == MutaRush)
+	{
+		if (BWAPI::Broodwar->getFrameCount() > 6500)
+		{
+			if (BWAPI::Broodwar->self()->visibleUnitCount(BWAPI::UnitTypes::Zerg_Hatchery) < 2)
+			{
+				if (!isConstructing(BWAPI::UnitTypes::Zerg_Hatchery))
+				{
+					goal.push_back(MetaPair(BWAPI::UnitTypes::Zerg_Hatchery, 1));
+				}
+			}
+		}
+
+		if (BWAPI::Broodwar->getFrameCount() > 5000)
+		{
+			if (BWAPI::Broodwar->self()->visibleUnitCount(BWAPI::UnitTypes::Zerg_Extractor) < 1)
+			{
+				if (!isConstructing(BWAPI::UnitTypes::Zerg_Extractor))
+				{
+					goal.push_back(MetaPair(BWAPI::UnitTypes::Zerg_Extractor, 1));
+				}
+			}
+			else if (BWAPI::Broodwar->self()->getUpgradeLevel(BWAPI::UpgradeTypes::Zerg_Flyer_Attacks) < 1)
+			{
+				if (!BWAPI::Broodwar->self()->isUpgrading(BWAPI::UpgradeTypes::Zerg_Flyer_Attacks))
+				{
+					goal.push_back(MetaPair(BWAPI::UpgradeTypes::Zerg_Flyer_Attacks, 1));
+				}
+			}
+		}
+
+		if (BWAPI::Broodwar->getFrameCount() < 6800)
+		{
+			if (BWAPI::Broodwar->self()->visibleUnitCount(BWAPI::UnitTypes::Zerg_Drone) < 28)
+			{
+				goal.push_back(MetaPair(BWAPI::UnitTypes::Zerg_Drone, 1));
+			}
+		}
+		else
+		{
+			if (BWAPI::Broodwar->self()->visibleUnitCount(BWAPI::UnitTypes::Zerg_Drone) < 42)
+			{
+				goal.push_back(MetaPair(BWAPI::UnitTypes::Zerg_Drone, 1));
+			}
+		}
+
+		goal.push_back(MetaPair(BWAPI::UnitTypes::Zerg_Mutalisk, 1));
 	}
 
 	return (const std::vector<std::pair<MetaType, UnitCountType>>)goal;
